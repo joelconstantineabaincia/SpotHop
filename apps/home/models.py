@@ -1,5 +1,6 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils import timezone
 
 
 # ==========================================
@@ -38,6 +39,19 @@ class User(models.Model):
 # 2. STUDY SPOTS
 # ==========================================
 class StudySpot(models.Model):
+    CATEGORY_CHOICES = [
+        ('CAFE', 'Café'),
+        ('LIBRARY', 'Library'),
+        ('COWORKING', 'Co-working Space'),
+        ('LOUNGE', 'Campus Lounge'),
+    ]
+    PRICE_CHOICES = [
+        ('FREE', 'Free'),
+        ('₱', '₱ (Budget)'),
+        ('₱₱', '₱₱ (Moderate)'),
+        ('₱₱₱', '₱₱₱ (Premium)'),
+    ]
+
     id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=150)
     category = models.CharField(max_length=20)
@@ -55,6 +69,10 @@ class StudySpot(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def price_tier_display(self):
+        return self.price_tier or 'Free'
 
 
 # ==========================================
