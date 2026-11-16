@@ -1,33 +1,115 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>SpotHop - Settings</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/user_settings/user_settings.css' %}">
-</head>
-<body class="bg-light">
-  <nav class="navbar navbar-dark bg-success px-4 mb-4">
-    <a class="navbar-brand fw-bold" href="{% url 'home:home' %}">← Back to Home</a>
-  </nav>
-  <div class="container" style="max-width: 500px;">
-    <div class="card shadow-sm p-4 border-0">
-      <h3 class="fw-bold text-success mb-3">Settings</h3>
-      <form method="post">
-        {% csrf_token %}
-        <div class="form-check form-switch mb-3">
-          <input class="form-check-input" type="checkbox" name="dark_mode" id="dm" {% if settings.dark_mode %}checked{% endif %}>
-          <label class="form-check-label" for="dm">Dark Mode</label>
-        </div>
-        <div class="form-check form-switch mb-4">
-          <input class="form-check-input" type="checkbox" name="email_notifications" id="notif" {% if settings.email_notifications %}checked{% endif %}>
-          <label class="form-check-label" for="notif">Study Spot Notifications</label>
-        </div>
-        <button type="submit" class="btn btn-success w-100">Save Preferences</button>
-      </form>
-    </div>
+
+{% block title %}Study Preferences & App Settings - SpotHop{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 760px;">
+  <div class="mb-4">
+    <h2 class="fw-bold mb-1">
+      <i class="bi bi-sliders text-success me-2"></i>Preferences & Settings
+    </h2>
+    <p class="text-muted">Customize your ideal study conditions and application appearance.</p>
   </div>
-  <script src="{% static 'js/user_settings/user_settings.js' %}"></script>
-</body>
-</html>
+
+  <form method="post" action="{% url 'user_settings:user_settings' %}">
+    {% csrf_token %}
+
+    <!-- Card 1: Study Spot Preferences -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-body">
+      <h5 class="fw-bold mb-3 text-success">
+        <i class="bi bi-stars me-2"></i>Study Environment Preferences
+      </h5>
+      <p class="text-muted small mb-4">
+        These settings are automatically applied when you click <strong>"Match My Preferences"</strong> on the study spot directory.
+      </p>
+
+      <div class="row g-4">
+        <!-- Preferred Noise -->
+        <div class="col-md-6">
+          <label class="form-label fw-semibold small">Preferred Noise Level</label>
+          <select name="preferred_noise_level" class="form-select">
+            <option value="SILENT" {% if settings_user.preferred_noise_level == 'SILENT' %}selected{% endif %}>🤫 Silent (Library quiet, deep concentration)</option>
+            <option value="QUIET" {% if settings_user.preferred_noise_level == 'QUIET' or not settings_user.preferred_noise_level %}selected{% endif %}>🍃 Quiet (Soft ambient background)</option>
+            <option value="MODERATE" {% if settings_user.preferred_noise_level == 'MODERATE' %}selected{% endif %}>💬 Moderate (Bustling café, group discussion)</option>
+            <option value="LOUD" {% if settings_user.preferred_noise_level == 'LOUD' %}selected{% endif %}>🔊 Lively / Energetic</option>
+          </select>
+        </div>
+
+        <!-- Preferred Outlets -->
+        <div class="col-md-6">
+          <label class="form-label fw-semibold small">Preferred Power Outlets</label>
+          <select name="preferred_outlet_density" class="form-select">
+            <option value="PLENTIFUL" {% if settings_user.preferred_outlet_density == 'PLENTIFUL' or not settings_user.preferred_outlet_density %}selected{% endif %}>🔌 Plentiful (Sockets at almost every seat)</option>
+            <option value="SCARCE" {% if settings_user.preferred_outlet_density == 'SCARCE' %}selected{% endif %}>🔌 Moderate / Scarce (Shared power strips)</option>
+            <option value="NONE" {% if settings_user.preferred_outlet_density == 'NONE' %}selected{% endif %}>Battery Only (No outlets needed)</option>
+          </select>
+        </div>
+
+        <!-- Minimum Wi-Fi Speed -->
+        <div class="col-12">
+          <label class="form-label fw-semibold small">Minimum Desired Wi-Fi Speed</label>
+          <div class="input-group">
+            <input type="number" step="1" name="min_wifi_speed_mbps" class="form-control" value="{{ settings_user.min_wifi_speed_mbps|floatformat:0|default:'20' }}" min="0" max="1000">
+            <span class="input-group-text">Mbps</span>
+          </div>
+          <small class="text-muted">Spots with average speeds lower than this will be filtered out when matching preferences.</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Appearance & Notifications -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-body">
+      <h5 class="fw-bold mb-3 text-primary">
+        <i class="bi bi-palette-fill me-2"></i>Appearance & Notifications
+      </h5>
+
+      <!-- Dark Mode Toggle Switch -->
+      <div class="d-flex justify-content-between align-items-center py-3 border-bottom">
+        <div>
+          <div class="fw-semibold">Dark Mode</div>
+          <small class="text-muted">Use high-contrast dark theme for late-night study sessions</small>
+        </div>
+        <div class="form-check form-switch fs-4">
+          <input class="form-check-input" type="checkbox" role="switch" name="dark_mode" id="darkModeSwitch" {% if settings_user.dark_mode %}checked{% endif %}>
+        </div>
+      </div>
+
+      <!-- Email Notifications Toggle Switch -->
+      <div class="d-flex justify-content-between align-items-center py-3">
+        <div>
+          <div class="fw-semibold">Email Notifications</div>
+          <small class="text-muted">Receive updates about newly added study spots and review replies</small>
+        </div>
+        <div class="form-check form-switch fs-4">
+          <input class="form-check-input" type="checkbox" role="switch" name="email_notifications" id="emailNotifsSwitch" {% if settings_user.email_notifications %}checked{% endif %}>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="d-flex justify-content-between align-items-center">
+      <a href="{% url 'home:home' %}" class="btn btn-outline-secondary rounded-pill px-4">
+        Cancel
+      </a>
+      <button type="submit" class="btn btn-spothop rounded-pill px-5">
+        <i class="bi bi-save me-1"></i> Save Changes
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Dynamic live dark mode toggle preview on the settings page
+  const darkModeSwitch = document.getElementById('darkModeSwitch');
+  if (darkModeSwitch) {
+    darkModeSwitch.addEventListener('change', function() {
+      const nextTheme = this.checked ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-bs-theme', nextTheme);
+      updateThemeIcon(nextTheme);
+    });
+  }
+</script>
+{% endblock %}

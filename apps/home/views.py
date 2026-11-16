@@ -6,7 +6,13 @@ from django.db.models import Q, Avg, Count
 from django.utils import timezone
 from apps.home.models import User, StudySpot, SpotAmenity, Review, CheckIn, SavedSpot
 from apps.login.auth_helper import login_required, get_logged_in_user
-from apps.home.services import execute_user_checkin, execute_recalculate_amenities
+from apps.home.services import (
+    execute_user_checkin,
+    execute_recalculate_amenities,
+    get_top_rated_spots_from_view,
+    get_late_night_hubs_from_view,
+    get_spot_amenity_summary_from_view,
+)
 
 
 def home_view(request):
@@ -103,6 +109,11 @@ def home_view(request):
     active_checkins_total = CheckIn.objects.filter(is_active=True).count()
     total_reviews_count = Review.objects.count()
 
+    # Analytical SQL Views data
+    top_rated_spots = get_top_rated_spots_from_view(3)
+    late_night_hubs = get_late_night_hubs_from_view(3)
+    amenity_summary = get_spot_amenity_summary_from_view(5)
+
     context = {
         'spots': spots_list,
         'saved_spot_ids': saved_spot_ids,
@@ -118,6 +129,9 @@ def home_view(request):
         'total_spots_count': total_spots_count,
         'active_checkins_total': active_checkins_total,
         'total_reviews_count': total_reviews_count,
+        'top_rated_spots': top_rated_spots,
+        'late_night_hubs': late_night_hubs,
+        'amenity_summary': amenity_summary,
     }
     return render(request, "home/home.html", context)
 

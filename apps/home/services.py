@@ -40,15 +40,12 @@ def execute_recalculate_amenities(spot_id):
         if not reviews.exists():
             return False
 
-        # Average download speed
         speeds = [r.download_speed_mbps for r in reviews if r.download_speed_mbps is not None]
         avg_speed = sum(speeds) / len(speeds) if speeds else None
 
-        # Mode outlet rating
         outlets = [r.outlet_rating for r in reviews if r.outlet_rating]
         predominant_outlet = Counter(outlets).most_common(1)[0][0] if outlets else 'PLENTIFUL'
 
-        # Mode noise level
         noises = [r.noise_level for r in reviews if r.noise_level]
         predominant_noise = Counter(noises).most_common(1)[0][0] if noises else 'QUIET'
 
@@ -62,3 +59,98 @@ def execute_recalculate_amenities(spot_id):
             }
         )
         return True
+
+
+def get_top_rated_spots_from_view(limit=3):
+    """
+    Fetches top-rated spots from SQL View vw_top_rated_spots.
+    """
+    results = []
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT spot_id, name, category, address, price_tier, avg_rating, review_count
+                FROM vw_top_rated_spots
+                WHERE review_count > 0
+                ORDER BY avg_rating DESC, review_count DESC
+                LIMIT %s;
+            """, [limit])
+            rows = cursor.fetchall()
+            for r in rows:
+                results.append({
+                    'spot_id': r[0],
+                    'name': r[1],
+                    'category': r[2],
+                    'address': r[3],
+                    'price_tier': r[4],
+                    'avg_rating': r[5],
+                    'review_count': r[6],
+                })
+    except Exception as e:
+        pass
+    return results
+
+
+def get_late_night_hubs_from_view(limit=3):
+    """
+    Fetches late-night study hubs from SQL View vw_late_night_study_hubs.
+    """
+    results = []
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT spot_id, name, category, address, opening_time, closing_time, price_tier, avg_wifi_speed_mbps, outlet_density, predominant_noise
+                FROM vw_late_night_study_hubs
+                ORDER BY avg_wifi_speed_mbps DESC
+                LIMIT %s;
+            """, [limit])
+            rows = cursor.fetchall()
+            for r in rows:
+                results.append({
+                    'spot_id': r[0],
+                    'name': r[1],
+                    'category': r[2],
+                    'address': r[3],
+                    'opening_time': r[4],
+                    'closing_time': r[5],
+                    'price_tier': r[6],
+                    'avg_wifi_speed_mbps': r[7],
+                    'outlet_density': r[8],
+                    'predominant_noise': r[9],
+                })
+    except Exception as e:
+        pass
+    return results
+
+
+def get_spot_amenity_summary_from_view(limit=5):
+    """
+    Fetches spot amenity & occupancy summary from SQL View vw_spot_amenity_summary.
+    """
+    results = []
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT spot_id, name, category, address, price_tier, opening_time, closing_time, avg_wifi_speed_mbps, outlet_density, predominant_noise, active_checkin_count
+                FROM vw_spot_amenity_summary
+                ORDER BY active_checkin_count DESC, avg_wifi_speed_mbps DESC
+                LIMIT %s;
+            """, [limit])
+            rows = cursor.fetchall()
+            for r in rows:
+                results.append({
+                    'spot_id': r[0],
+                    'name': r[1],
+                    'category': r[2],
+                    'address': r[3],
+                    'price_tier': r[4],
+                    'opening_time': r[5],
+                    'closing_time': r[6],
+                    'avg_wifi_speed_mbps': r[7],
+                    'outlet_density': r[8],
+                    'predominant_noise': r[9],
+                    'active_checkin_count': r[10],
+                })
+    except Exception as e:
+        pass
+    return results

@@ -153,6 +153,78 @@
     </form>
   </div>
 
+  <!-- Analytical SQL Views Dashboard Insights -->
+  <div class="row g-4 mb-4">
+    <!-- Top Rated Spots (vw_top_rated_spots) -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0 text-success">
+            <i class="bi bi-trophy-fill me-2 text-warning"></i>Top-Rated Study Hubs
+          </h6>
+          <span class="badge bg-success-subtle text-success border border-success-subtle small">SQL View: vw_top_rated_spots</span>
+        </div>
+        <p class="text-muted small mb-3">Calculated live across student ratings and verified reviews.</p>
+        
+        <div class="list-group list-group-flush">
+          {% for tr in top_rated_spots %}
+          <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 bg-transparent border-bottom">
+            <div>
+              <div class="fw-bold">
+                <a href="{% url 'home:spot_detail' tr.spot_id %}" class="text-decoration-none text-reset">
+                  {{ tr.name }}
+                </a>
+              </div>
+              <small class="text-muted"><i class="bi bi-geo-alt me-1"></i>{{ tr.address }}</small>
+            </div>
+            <div class="text-end">
+              <div class="badge bg-warning-subtle text-dark border fw-bold fs-6">
+                ★ {{ tr.avg_rating }}
+              </div>
+              <div class="text-muted" style="font-size: 0.75rem;">{{ tr.review_count }} review{{ tr.review_count|pluralize }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Late Night Study Hubs (vw_late_night_study_hubs) -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0 text-primary">
+            <i class="bi bi-moon-stars-fill me-2 text-info"></i>Late-Night Study Hubs
+          </h6>
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle small">SQL View: vw_late_night_study_hubs</span>
+        </div>
+        <p class="text-muted small mb-3">Open past 10:00 PM with verified high-speed Wi-Fi (&gt;30 Mbps) for night owls.</p>
+
+        <div class="list-group list-group-flush">
+          {% for ln in late_night_hubs %}
+          <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 bg-transparent border-bottom">
+            <div>
+              <div class="fw-bold">
+                <a href="{% url 'home:spot_detail' ln.spot_id %}" class="text-decoration-none text-reset">
+                  {{ ln.name }}
+                </a>
+              </div>
+              <small class="text-muted">
+                <i class="bi bi-clock me-1"></i>Closes {{ ln.closing_time|time:"g:i A" }} &bull; {{ ln.outlet_density|title }} Sockets
+              </small>
+            </div>
+            <div class="text-end">
+              <span class="badge bg-success-subtle text-success border border-success-subtle fs-6">
+                ⚡ {{ ln.avg_wifi_speed_mbps }} Mbps
+              </span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Study Spots Directory List -->
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h5 class="fw-bold mb-0">
