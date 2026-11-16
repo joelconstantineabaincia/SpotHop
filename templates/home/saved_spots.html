@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Saved Study Spots - SpotHop{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold mb-1">
+        <i class="bi bi-bookmark-heart text-danger me-2"></i>My Saved Study Spots
+      </h2>
+      <p class="text-muted mb-0">Your bookmarked cafés, university libraries, and study hubs for quick access.</p>
+    </div>
+    <a href="{% url 'home:home' %}" class="btn btn-outline-secondary rounded-pill px-4">
+      <i class="bi bi-compass me-1"></i> Browse All Spots
+    </a>
+  </div>
+
+  {% if spots %}
+  <div class="row g-4">
+    {% for spot in spots %}
+    <div class="col-lg-4 col-md-6">
+      <div class="card h-100 spot-card shadow-sm position-relative">
+        <div class="card-body d-flex flex-column p-4">
+          <!-- Top Row: Category & Status Badge & Bookmark Button -->
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge bg-light text-dark border small fw-semibold text-uppercase">
+                {% if spot.category == 'CAFE' %}<i class="bi bi-cup-hot text-warning me-1"></i>Café
+                {% elif spot.category == 'LIBRARY' %}<i class="bi bi-book text-primary me-1"></i>Library
+                {% elif spot.category == 'COWORKING' %}<i class="bi bi-laptop text-info me-1"></i>Co-working
+                {% else %}<i class="bi bi-building text-secondary me-1"></i>Lounge{% endif %}
+              </span>
+
+              {% if spot.is_open_now %}
+              <span class="badge badge-open rounded-pill small fw-semibold">
+                <i class="bi bi-clock-fill me-1"></i>Open
+              </span>
+              {% else %}
+              <span class="badge badge-closed rounded-pill small fw-semibold">
+                <i class="bi bi-moon me-1"></i>Closed
+              </span>
+              {% endif %}
+            </div>
+
+            <!-- Bookmark Button -->
+            <a href="{% url 'home:toggle_save' spot.id %}" class="bookmark-btn saved" title="Remove from saved">
+              <i class="bi bi-bookmark-heart-fill"></i>
+            </a>
+          </div>
+
+          <!-- Spot Name -->
+          <h5 class="card-title fw-bold mb-1">
+            <a href="{% url 'home:spot_detail' spot.id %}" class="text-decoration-none text-reset">
+              {{ spot.name }}
+            </a>
+          </h5>
+
+          <!-- Address -->
+          <p class="card-text text-muted small mb-3">
+            <i class="bi bi-geo-alt text-danger me-1"></i>{{ spot.address }}
+          </p>
+
+          <!-- Operating Hours & Price -->
+          <div class="d-flex justify-content-between align-items-center small text-muted mb-3 pb-2 border-bottom">
+            <div>
+              <i class="bi bi-clock me-1"></i>
+              {% if spot.opening_time and spot.closing_time %}
+                {{ spot.opening_time|time:"g:i A" }} – {{ spot.closing_time|time:"g:i A" }}
+              {% else %}
+                Hours Vary
+              {% endif %}
+            </div>
+            <span class="badge bg-secondary-subtle text-dark border fw-bold">
+              {{ spot.price_tier_display }}
+            </span>
+          </div>
+
+          <!-- Amenities Badges -->
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <div class="spot-stat-badge badge-wifi" title="Average verified Wi-Fi speed">
+              <i class="bi bi-wifi"></i>
+              <span>{{ spot.amenities.avg_wifi_speed_mbps|default:"—" }} Mbps</span>
+            </div>
+            <div class="spot-stat-badge badge-outlet" title="Power outlet availability">
+              <i class="bi bi-plug-fill"></i>
+              <span>{{ spot.amenities.outlet_density|title|default:"Unverified" }}</span>
+            </div>
+            <div class="spot-stat-badge badge-noise" title="Noise environment">
+              <i class="bi bi-volume-up"></i>
+              <span>{{ spot.amenities.predominant_noise|title|default:"Moderate" }}</span>
+            </div>
+            <div class="spot-stat-badge badge-occupancy ms-auto" title="Students currently checked in">
+              <i class="bi bi-people-fill"></i>
+              <span>{{ spot.active_checkins_count }} studying</span>
+            </div>
+          </div>
+
+          <!-- Bottom Footer Row -->
+          <div class="mt-auto pt-2 d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-1">
+              {% if spot.avg_rating %}
+              <span class="rating-star"><i class="bi bi-star-fill"></i></span>
+              <span class="fw-bold">{{ spot.avg_rating }}</span>
+              <small class="text-muted">({{ spot.reviews_count }})</small>
+              {% else %}
+              <small class="text-muted"><i class="bi bi-star me-1"></i>New</small>
+              {% endif %}
+            </div>
+
+            <a href="{% url 'home:spot_detail' spot.id %}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold">
+              View & Check In <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card p-5 text-center shadow-sm border-0 rounded-4">
+    <div class="py-5">
+      <i class="bi bi-bookmark-heart fs-1 text-danger mb-3 d-block"></i>
+      <h4 class="fw-bold">No saved study spots yet</h4>
+      <p class="text-muted">Click the heart bookmark icon on any study spot card to save it for later.</p>
+      <a href="{% url 'home:home' %}" class="btn btn-spothop rounded-pill px-4 mt-2">
+        <i class="bi bi-compass me-1"></i> Discover Study Spots
+      </a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

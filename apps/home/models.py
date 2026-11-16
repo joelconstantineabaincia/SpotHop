@@ -11,15 +11,16 @@ class User(models.Model):
     username = models.CharField(max_length=50, unique=True)
     email = models.EmailField(max_length=254, unique=True)
     password_hash = models.CharField(max_length=128)
-    full_name = models.CharField(max_length=150)
-    bio = models.TextField(blank=True, null=True)
-    preferred_noise_level = models.CharField(max_length=20, blank=True, null=True)
-    preferred_outlet_density = models.CharField(max_length=20, blank=True, null=True)
+    full_name = models.CharField(max_length=150, blank=True, default='')
+    bio = models.TextField(blank=True, null=True, default='')
+    preferred_noise_level = models.CharField(max_length=20, blank=True, null=True, default='QUIET')
+    preferred_outlet_density = models.CharField(max_length=20, blank=True, null=True, default='PLENTIFUL')
     min_wifi_speed_mbps = models.DecimalField(
         max_digits=6,
         decimal_places=2,
         blank=True,
         null=True,
+        default=20.00,
         validators=[MinValueValidator(0.00)],
     )
     dark_mode = models.BooleanField(default=False)
@@ -74,11 +75,46 @@ class StudySpot(models.Model):
     def price_tier_display(self):
         return self.price_tier or 'Free'
 
+    @property
+    def is_open_now(self):
+        if not self.opening_time or not self.closing_time:
+            return True
+        now_time = timezone.localtime().time()
+        if self.opening_time <= self.closing_time:
+            return self.opening_time <= now_time <= self.closing_time
+        else:
+            return now_time >= self.opening_time or now_time <= self.closing_time
+
+    @property
+    def active_checkins_count(self):
+        return self.check_ins.filter(is_active=True).count()
+
+    @property
+    def avg_rating(self):
+        agg = self.reviews.aggregate(models.Avg('overall_rating'))['overall_rating__avg']
+        return round(float(agg), 1) if agg else None
+
+    @property
+    def reviews_count(self):
+        return self.reviews.count()
+
 
 # ==========================================
 # 3. SPOT AMENITIES (1:1 with StudySpot)
 # ==========================================
 class SpotAmenity(models.Model):
+    OUTLET_CHOICES = [
+        ('PLENTIFUL', 'Plentiful'),
+        ('SCARCE', 'Scarce'),
+        ('NONE', 'None'),
+    ]
+    NOISE_CHOICES = [
+        ('SILENT', 'Silent'),
+        ('QUIET', 'Quiet'),
+        ('MODERATE', 'Moderate'),
+        ('LOUD', 'Loud'),
+    ]
+
     spot = models.OneToOneField(
         StudySpot,
         on_delete=models.CASCADE,
