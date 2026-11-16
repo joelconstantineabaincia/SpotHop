@@ -6,6 +6,7 @@ from django.db.models import Q, Avg, Count
 from django.utils import timezone
 from apps.home.models import User, StudySpot, SpotAmenity, Review, CheckIn, SavedSpot
 from apps.login.auth_helper import login_required, get_logged_in_user
+from apps.home.services import execute_user_checkin, execute_recalculate_amenities
 
 
 def home_view(request):
@@ -121,6 +122,44 @@ def home_view(request):
     return render(request, "home/home.html", context)
 
 
+def spot_detail_view(request, spot_id):
+    spot = get_object_or_404(StudySpot.objects.select_related('amenities'), id=spot_id)
+    current_user = get_logged_in_user(request)
+
+    # Reviews ordered by newest first
+    reviews = Review.objects.filter(spot=spot).select_related('user').order_by('-id')
+
+    # Active check-ins at this spot
+    active_checkins = CheckIn.objects.filter(spot=spot, is_active=True).select_related('user').order_by('-checked_in_at')
+
+    # Check if current user is saved or checked in
+    is_saved = False
+    is_user_checked_in_here = False
+    user_active_checkin_elsewhere = None
+    user_review = None
+
+    if current_user:
+        is_saved = SavedSpot.objects.filter(user=current_user, spot=spot).exists()
+        active_ci = CheckIn.objects.filter(user=current_user, is_active=True).select_related('spot').first()
+        if active_ci:
+            if active_ci.spot_id == spot.id:
+                is_user_checked_in_here = True
+            else:
+                user_active_checkin_elsewhere = active_ci
+        user_review = Review.objects.filter(spot=spot, user=current_user).first()
+
+    context = {
+        'spot': spot,
+        'reviews': reviews,
+        'active_checkins': active_checkins,
+        'is_saved': is_saved,
+        'is_user_checked_in_here': is_user_checked_in_here,
+        'user_active_checkin_elsewhere': user_active_checkin_elsewhere,
+        'user_review': user_review,
+    }
+    return render(request, "home/spot_detail.html", context)
+
+
 @login_required
 def toggle_save_spot_view(request, spot_id):
     user = get_logged_in_user(request)
@@ -204,9 +243,82 @@ def add_spot_view(request):
             )
 
             messages.success(request, f"Study spot '{spot.name}' added successfully!")
-            return redirect('home:home')
+            return redirect('home:spot_detail', spot_id=spot.id)
         except Exception as e:
             messages.error(request, f"Error adding spot: {str(e)}")
             return redirect('home:home')
 
     return redirect('home:home')
+
+
+@login_required
+def toggle_checkin_view(request, spot_id):
+    user = get_logged_in_user(request)
+    spot = get_object_or_404(StudySpot, id=spot_id)
+
+    # Check if user is currently checked into THIS spot
+    current_checkin = CheckIn.objects.filter(user=user, spot=spot, is_active=True).first()
+
+    if current_checkin:
+        # Check out
+        current_checkin.is_active = False
+        current_checkin.save()
+        messages.info(request, f"You have checked out of {spot.name}.")
+    else:
+        # Check into this spot (using stored procedure or service)
+        execute_user_checkin(user.id, spot.id)
+        messages.success(request, f"Checked in to {spot.name}! Your study session is now active.")
+
+    return redirect('home:spot_detail', spot_id=spot.id)
+
+
+@login_required
+def add_review_view(request, spot_id):
+    user = get_logged_in_user(request)
+    spot = get_object_or_404(StudySpot, id=spot_id)
+
+    if request.method == "POST":
+        overall_rating = int(request.POST.get('overall_rating', 5))
+        outlet_rating = request.POST.get('outlet_rating', 'PLENTIFUL').strip()
+        noise_level = request.POST.get('noise_level', 'QUIET').strip()
+        download_speed = request.POST.get('download_speed_mbps', '').strip()
+        upload_speed = request.POST.get('upload_speed_mbps', '').strip()
+        review_text = request.POST.get('review_text', '').strip()
+
+        download_val = Decimal(download_speed) if download_speed else None
+        upload_val = Decimal(upload_speed) if upload_speed else None
+
+        Review.objects.update_or_create(
+            spot=spot,
+            user=user,
+            defaults={
+                'overall_rating': overall_rating,
+                'outlet_rating': outlet_rating,
+                'noise_level': noise_level,
+                'download_speed_mbps': download_val,
+                'upload_speed_mbps': upload_val,
+                'review_text': review_text,
+            }
+        )
+
+        # Recalculate amenities for this spot
+        execute_recalculate_amenities(spot.id)
+
+        messages.success(request, f"Thank you! Your speed-test and review for {spot.name} have been submitted.")
+
+    return redirect('home:spot_detail', spot_id=spot.id)
+
+
+@login_required
+def delete_review_view(request, review_id):
+    user = get_logged_in_user(request)
+    review = get_object_or_404(Review, id=review_id, user=user)
+    spot_id = review.spot_id
+    spot_name = review.spot.name
+    review.delete()
+
+    # Recalculate amenities
+    execute_recalculate_amenities(spot_id)
+
+    messages.info(request, f"Your review for {spot_name} has been deleted.")
+    return redirect('home:spot_detail', spot_id=spot_id)
