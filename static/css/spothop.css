@@ -7,6 +7,13 @@
   --sh-font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --sh-font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
 
+  /* Bootstrap 5 Primary Overrides (Kill Default Blue #0D6EFD) */
+  --bs-primary: #0F5132;
+  --bs-primary-rgb: 15, 81, 50;
+  --bs-focus-ring-color: rgba(15, 81, 50, 0.2);
+  --bs-link-color: #0F5132;
+  --bs-link-hover-color: #0B3D26;
+
   /* Editorial Warm Stone Palette (Light Mode) */
   --sh-bg: #FAFAF9;
   --sh-surface: #FFFFFF;
@@ -23,7 +30,7 @@
 
   /* Confident Brand Accent (Deep Forest Emerald) */
   --sh-brand: #0F5132;
-  --sh-brand-hover: #14532D;
+  --sh-brand-hover: #0B3D26;
   --sh-brand-surface: #ECFDF5;
   --sh-brand-border: #A7F3D0;
   --sh-brand-text: #065F46;
@@ -39,6 +46,13 @@
 }
 
 [data-bs-theme="dark"] {
+  /* Dark Mode Bootstrap Overrides */
+  --bs-primary: #22C55E;
+  --bs-primary-rgb: 34, 197, 94;
+  --bs-focus-ring-color: rgba(34, 197, 94, 0.25);
+  --bs-link-color: #4ADE80;
+  --bs-link-hover-color: #86EFAC;
+
   /* Obsidian Warm Stone Palette (Dark Mode) */
   --sh-bg: #0C0A09;
   --sh-surface: #1C1917;
@@ -109,12 +123,18 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.55;
 }
 
-.eyebrow-text {
+.eyebrow-text,
+.spot-card-eyebrow {
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--sh-text-muted);
+}
+
+/* Surface Utility */
+.bg-stone {
+  background-color: var(--sh-surface-subtle) !important;
 }
 
 /* Navbar */
@@ -172,24 +192,60 @@ h1, h2, h3, h4, h5, h6 {
   background-color: var(--sh-brand-surface);
 }
 
-/* Buttons */
-.btn-editorial-primary {
-  background-color: var(--sh-brand) !important;
-  border-color: var(--sh-brand) !important;
+/* ==========================================================================
+   Primary Action Form & CTA Buttons
+   Deep Forest Emerald (#0F5132), 8px radius, 0.625rem 1.25rem padding
+   ========================================================================== */
+.btn-brand,
+.btn-editorial-primary,
+.btn-spothop {
+  background-color: #0F5132 !important;
+  border: 1px solid #0F5132 !important;
   color: #FFFFFF !important;
-  font-weight: 600;
-  font-size: 0.875rem;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  transition: all 0.15s ease;
-  box-shadow: var(--sh-shadow-sm);
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  padding: 0.625rem 1.25rem !important;
+  border-radius: 8px !important;
+  transition: all 0.15s ease !important;
+  box-shadow: var(--sh-shadow-sm) !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none !important;
 }
 
-.btn-editorial-primary:hover {
-  background-color: var(--sh-brand-hover) !important;
-  border-color: var(--sh-brand-hover) !important;
+.btn-brand:hover,
+.btn-brand:focus,
+.btn-editorial-primary:hover,
+.btn-editorial-primary:focus,
+.btn-spothop:hover,
+.btn-spothop:focus {
+  background-color: #0B3D26 !important;
+  border-color: #0B3D26 !important;
+  color: #FFFFFF !important;
   transform: translateY(-1px);
   box-shadow: var(--sh-shadow-md);
+}
+
+.btn-brand:active,
+.btn-editorial-primary:active,
+.btn-spothop:active {
+  transform: translateY(0);
+}
+
+[data-bs-theme="dark"] .btn-brand,
+[data-bs-theme="dark"] .btn-editorial-primary,
+[data-bs-theme="dark"] .btn-spothop {
+  background-color: #15803D !important;
+  border-color: #15803D !important;
+  color: #FFFFFF !important;
+}
+
+[data-bs-theme="dark"] .btn-brand:hover,
+[data-bs-theme="dark"] .btn-editorial-primary:hover,
+[data-bs-theme="dark"] .btn-spothop:hover {
+  background-color: #166534 !important;
+  border-color: #166534 !important;
 }
 
 .btn-editorial-secondary {
@@ -209,11 +265,85 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--sh-text) !important;
 }
 
+/* ==========================================================================
+   Form Controls Focus & Switch Overrides (Kill Bootstrap Blue)
+   ========================================================================== */
+.form-control,
+.form-select {
+  border-radius: 8px;
+  font-size: 0.875rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-control:focus,
+.form-select:focus,
+.form-control-editorial:focus,
+.form-select-editorial:focus {
+  border-color: #0F5132 !important;
+  box-shadow: 0 0 0 0.2rem rgba(15, 81, 50, 0.2) !important;
+}
+
+[data-bs-theme="dark"] .form-control:focus,
+[data-bs-theme="dark"] .form-select:focus,
+[data-bs-theme="dark"] .form-control-editorial:focus,
+[data-bs-theme="dark"] .form-select-editorial:focus {
+  border-color: #22C55E !important;
+  box-shadow: 0 0 0 0.2rem rgba(34, 197, 94, 0.25) !important;
+}
+
+/* Switches & Checkboxes Checked State */
+.form-check-input:checked {
+  background-color: #0F5132 !important;
+  border-color: #0F5132 !important;
+}
+
+[data-bs-theme="dark"] .form-check-input:checked {
+  background-color: #22C55E !important;
+  border-color: #22C55E !important;
+}
+
+.form-check-input:focus {
+  border-color: #0F5132 !important;
+  box-shadow: 0 0 0 0.2rem rgba(15, 81, 50, 0.2) !important;
+}
+
+[data-bs-theme="dark"] .form-check-input:focus {
+  border-color: #22C55E !important;
+  box-shadow: 0 0 0 0.2rem rgba(34, 197, 94, 0.25) !important;
+}
+
+/* Nav Pills (Profile Check-Ins / Reviews Tabs) */
+.nav-pills .nav-link {
+  color: var(--sh-text-secondary);
+  background-color: transparent;
+  transition: all 0.15s ease;
+}
+
+.nav-pills .nav-link:hover {
+  color: var(--sh-text);
+  background-color: var(--sh-surface-subtle);
+}
+
+.nav-pills .nav-link.active,
+.nav-pills .show > .nav-link {
+  background-color: #0F5132 !important;
+  color: #FFFFFF !important;
+}
+
+[data-bs-theme="dark"] .nav-pills .nav-link.active,
+[data-bs-theme="dark"] .nav-pills .show > .nav-link {
+  background-color: #1C1917 !important;
+  border: 1px solid #292524 !important;
+  color: #FAFAF9 !important;
+}
+
 /* Cards & Surfaces */
-.surface-card {
+.surface-card,
+.card-editorial {
   background-color: var(--sh-surface);
   border: 1px solid var(--sh-border);
   border-radius: 12px;
+  box-shadow: var(--sh-shadow-sm);
   transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 
@@ -239,8 +369,39 @@ h1, h2, h3, h4, h5, h6 {
   border-color: rgba(34, 197, 94, 0.4);
 }
 
+/* 16:9 Venue Cover Imagery */
+.venue-cover-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background-color: var(--sh-surface-subtle);
+  overflow: hidden;
+}
+
+.venue-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.spot-card-editorial:hover .venue-cover-img {
+  transform: scale(1.03);
+}
+
+.venue-detail-banner {
+  width: 100%;
+  height: 280px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 1.25rem;
+  background-color: var(--sh-surface-subtle);
+}
+
 /* Live Pulse Dot */
-.live-pulse-dot {
+.live-pulse-dot,
+.pulse-dot {
   width: 7px;
   height: 7px;
   background-color: var(--sh-live-dot);
@@ -250,6 +411,7 @@ h1, h2, h3, h4, h5, h6 {
   position: relative;
 }
 
+.pulse-dot-active,
 .live-pulse-dot::after {
   content: '';
   position: absolute;
@@ -268,7 +430,7 @@ h1, h2, h3, h4, h5, h6 {
   100% { transform: scale(2.2); opacity: 0; }
 }
 
-/* Status Indicator Dot */
+/* Status Indicator Dot & Pill */
 .status-dot {
   width: 6px;
   height: 6px;
@@ -282,6 +444,38 @@ h1, h2, h3, h4, h5, h6 {
 
 .status-dot.closed {
   background-color: var(--sh-status-closed);
+}
+
+.badge-status-open {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #15803D;
+  background-color: #DCFCE7;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+}
+
+[data-bs-theme="dark"] .badge-status-open {
+  color: #4ADE80;
+  background-color: rgba(34, 197, 94, 0.15);
+}
+
+.badge-status-closed {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #78716C;
+  background-color: #F5F5F4;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+}
+
+[data-bs-theme="dark"] .badge-status-closed {
+  color: #A8A29E;
+  background-color: #292524;
 }
 
 /* Telemetry Badge */
