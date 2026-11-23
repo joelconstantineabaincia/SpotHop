@@ -4,9 +4,9 @@
 {% block title %}Settings & Preferences — SpotHop{% endblock %}
 
 {% block content %}
-<div class="container py-4" style="max-width: 760px;">
-  <!-- Breadcrumb -->
-  <nav aria-label="breadcrumb" class="mb-3">
+<div class="container py-4" style="max-width: 800px;">
+  <!-- Minimalist Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-4">
     <ol class="breadcrumb small mb-0 text-muted">
       <li class="breadcrumb-item"><a href="{% url 'home:home' %}" class="text-decoration-none text-muted">Directory</a></li>
       <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Settings</li>
@@ -15,16 +15,16 @@
 
   <div class="mb-4">
     <h1 class="h3 fw-bold text-dark mb-1">Preferences & Settings</h1>
-    <p class="text-muted small mb-0">Configure your study criteria and application appearance.</p>
+    <p class="text-muted small mb-0">Configure your automated study matching criteria and application appearance.</p>
   </div>
 
   <form method="post" action="{% url 'user_settings:user_settings' %}">
     {% csrf_token %}
 
-    <!-- Card 1: Study Spot Preferences -->
-    <div class="card card-editorial p-4 mb-4">
-      <div class="spot-card-eyebrow mb-1">Study Filters</div>
-      <h5 class="fw-bold text-dark mb-1">Environment Preferences</h5>
+    <!-- Section 1: Study Environment Preferences -->
+    <div class="surface-tonal p-4 mb-4 rounded-4">
+      <div class="spot-card-eyebrow mb-1">Directory Filter Defaults</div>
+      <h2 class="h5 fw-bold text-dark mb-1">Environment Preferences</h2>
       <p class="text-muted small mb-3">
         Applied automatically when clicking <strong>"Match My Preferences"</strong> on the study spot directory.
       </p>
@@ -33,7 +33,7 @@
         <!-- Preferred Noise -->
         <div class="col-md-6">
           <label class="form-label fw-semibold small text-dark mb-1">Preferred Ambient Noise</label>
-          <select name="preferred_noise_level" class="form-select form-select-sm">
+          <select name="preferred_noise_level" class="form-select form-select-sm bg-white">
             <option value="SILENT" {% if settings_user.preferred_noise_level == 'SILENT' %}selected{% endif %}>Silent — Deep focus, library silence</option>
             <option value="QUIET" {% if settings_user.preferred_noise_level == 'QUIET' or not settings_user.preferred_noise_level %}selected{% endif %}>Quiet — Soft background ambient</option>
             <option value="MODERATE" {% if settings_user.preferred_noise_level == 'MODERATE' %}selected{% endif %}>Moderate — Café chatter, group work</option>
@@ -44,7 +44,7 @@
         <!-- Preferred Outlets -->
         <div class="col-md-6">
           <label class="form-label fw-semibold small text-dark mb-1">Power Outlet Density</label>
-          <select name="preferred_outlet_density" class="form-select form-select-sm">
+          <select name="preferred_outlet_density" class="form-select form-select-sm bg-white">
             <option value="PLENTIFUL" {% if settings_user.preferred_outlet_density == 'PLENTIFUL' or not settings_user.preferred_outlet_density %}selected{% endif %}>Plentiful — Outlets at nearly every desk</option>
             <option value="SCARCE" {% if settings_user.preferred_outlet_density == 'SCARCE' %}selected{% endif %}>Scarce — Shared wall sockets</option>
             <option value="NONE" {% if settings_user.preferred_outlet_density == 'NONE' %}selected{% endif %}>None — Battery power only</option>
@@ -53,22 +53,22 @@
 
         <!-- Minimum Wi-Fi Speed -->
         <div class="col-12">
-          <label class="form-label fw-semibold small text-dark mb-1">Minimum Wi-Fi Speed</label>
+          <label class="form-label fw-semibold small text-dark mb-1">Minimum Wi-Fi Threshold</label>
           <div class="input-group input-group-sm" style="max-width: 240px;">
-            <input type="number" step="1" name="min_wifi_speed_mbps" class="form-control font-mono" value="{{ settings_user.min_wifi_speed_mbps|floatformat:0|default:'20' }}" min="0" max="1000">
-            <span class="input-group-text font-mono">Mbps</span>
+            <input type="number" step="1" name="min_wifi_speed_mbps" class="form-control font-mono bg-white" value="{{ settings_user.min_wifi_speed_mbps|floatformat:0|default:'20' }}" min="0" max="1000">
+            <span class="input-group-text font-mono bg-white">Mbps</span>
           </div>
           <small class="text-muted" style="font-size: 0.72rem;">Spaces below this verified speed will be excluded when matching preferences.</small>
         </div>
       </div>
     </div>
 
-    <!-- Card 2: Appearance & Notifications -->
-    <div class="card card-editorial p-4 mb-4">
-      <div class="spot-card-eyebrow mb-1">System</div>
-      <h5 class="fw-bold text-dark mb-3">Appearance & Notifications</h5>
+    <!-- Section 2: Appearance & Notifications -->
+    <div class="surface-tonal p-4 mb-4 rounded-4">
+      <div class="spot-card-eyebrow mb-1">System Appearance</div>
+      <h2 class="h5 fw-bold text-dark mb-3">Theme & Alerts</h2>
 
-      <!-- Dark Mode Toggle Switch -->
+      <!-- Dark Mode Switch -->
       <div class="d-flex justify-content-between align-items-center py-3 border-bottom">
         <div>
           <div class="fw-semibold text-dark small">Obsidian Dark Theme</div>
@@ -79,7 +79,7 @@
         </div>
       </div>
 
-      <!-- Email Notifications Toggle Switch -->
+      <!-- Email Notifications Switch -->
       <div class="d-flex justify-content-between align-items-center pt-3">
         <div>
           <div class="fw-semibold text-dark small">Campus Study Alerts</div>
@@ -93,10 +93,10 @@
 
     <!-- Action Buttons -->
     <div class="d-flex justify-content-between align-items-center">
-      <a href="{% url 'home:home' %}" class="btn btn-outline-secondary rounded-3 px-4 py-2 small">
+      <a href="{% url 'home:home' %}" class="btn btn-editorial-secondary px-4 py-2 small">
         Cancel
       </a>
-      <button type="submit" class="btn btn-brand rounded-3 px-4 py-2 fw-semibold">
+      <button type="submit" class="btn btn-brand px-4 py-2 fw-semibold">
         Save Preferences
       </button>
     </div>

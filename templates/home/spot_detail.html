@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="container py-4">
-  <!-- Breadcrumbs -->
+  <!-- Minimalist Breadcrumb -->
   <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb small mb-0 text-muted">
       <li class="breadcrumb-item"><a href="{% url 'home:home' %}" class="text-decoration-none text-muted">Directory</a></li>
@@ -17,11 +17,16 @@
   <div class="row g-4 align-items-start">
     <!-- Main Content (Left, 8 cols) -->
     <div class="col-lg-8">
-      <!-- Sleek Venue Cover Banner -->
-      <img src="{{ spot.cover_image_url }}" alt="{{ spot.name }}" class="venue-detail-banner shadow-sm" onerror="this.onerror=null;this.src='{{ spot.cover_fallback_svg }}';">
+      <!-- 21:9 Wide Rounded Hero Banner (16:9 on mobile) -->
+      <img
+        src="{{ spot.cover_image_url }}"
+        alt="{{ spot.name }}"
+        class="venue-hero-banner shadow-sm mb-4"
+        onerror="this.onerror=null;this.src='{{ spot.cover_fallback_svg }}';"
+      >
 
-      <!-- Spot Header Card -->
-      <div class="card card-editorial p-4 mb-4">
+      <!-- De-boxified Spot Header -->
+      <div class="mb-4">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
           <div class="d-flex align-items-center gap-2">
             <span class="spot-card-eyebrow mb-0">
@@ -34,20 +39,20 @@
             <span class="font-mono text-muted small fw-semibold">{{ spot.price_tier_display }}</span>
           </div>
 
-          <div class="d-flex align-items-center gap-2">
+          <div>
             {% if spot.is_open_now %}
-            <span class="badge-status-open">
-              <span class="pulse-dot pulse-dot-active me-1"></span> Open Now
+            <span class="badge-status-open font-mono">
+              <span class="status-indicator-dot open me-1"></span> Open Now
             </span>
             {% else %}
-            <span class="badge-status-closed">
-              <span class="pulse-dot me-1"></span> Closed
+            <span class="badge-status-closed font-mono">
+              <span class="status-indicator-dot closed me-1"></span> Closed
             </span>
             {% endif %}
           </div>
         </div>
 
-        <h1 class="h2 fw-bold text-dark mb-2">{{ spot.name }}</h1>
+        <h1 class="display-6 fw-bold text-dark mb-2">{{ spot.name }}</h1>
 
         <div class="d-flex flex-wrap align-items-center gap-3 text-muted small mb-3">
           <div>
@@ -56,16 +61,13 @@
           <div>&bull;</div>
           <div>
             <a href="https://maps.google.com/?q={{ spot.latitude }},{{ spot.longitude }}" target="_blank" class="text-decoration-none text-dark fw-medium">
-              <i class="bi bi-compass me-1"></i>Google Maps ({{ spot.latitude }}, {{ spot.longitude }})
+              <i class="bi bi-compass me-1"></i>Google Maps
             </a>
           </div>
-        </div>
-
-        <div class="p-3 bg-stone rounded-3 d-flex flex-wrap align-items-center justify-content-between gap-3 text-muted small">
-          <div class="d-flex align-items-center gap-2">
-            <i class="bi bi-clock text-secondary"></i>
-            <span>Operating Hours:</span>
-            <span class="font-mono text-dark fw-semibold">
+          <div>&bull;</div>
+          <div>
+            <i class="bi bi-clock me-1 text-secondary"></i>
+            <span class="font-mono text-dark fw-medium">
               {% if spot.opening_time and spot.closing_time %}
                 {{ spot.opening_time|time:"g:i A" }} – {{ spot.closing_time|time:"g:i A" }}
               {% else %}
@@ -73,78 +75,51 @@
               {% endif %}
             </span>
           </div>
-          {% if spot.avg_rating %}
-          <div class="d-flex align-items-center gap-1 font-mono">
-            <i class="bi bi-star-fill text-warning"></i>
-            <span class="fw-bold text-dark">{{ spot.avg_rating }}</span>
-            <span class="text-muted small">({{ reviews|length }} reviews)</span>
-          </div>
-          {% endif %}
         </div>
       </div>
 
-      <!-- Verified Amenity Telemetry Grid -->
-      <div class="card card-editorial p-4 mb-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div>
-            <h5 class="fw-bold text-dark mb-1">Verified Telemetry</h5>
-            <p class="text-muted small mb-0">Aggregated from verified student speed tests and reviews</p>
-          </div>
-          {% if spot.amenities.last_recalculated_at %}
-          <span class="text-muted font-mono" style="font-size: 0.72rem;">
-            Updated {{ spot.amenities.last_recalculated_at|date:"M d, H:i" }}
-          </span>
-          {% endif %}
-        </div>
-
-        <div class="row g-3">
-          <!-- Wi-Fi -->
-          <div class="col-sm-4">
-            <div class="p-3 border rounded-3 text-center bg-white h-100">
-              <div class="text-muted small mb-1"><i class="bi bi-wifi me-1 text-success"></i>Avg Wi-Fi</div>
-              <div class="font-mono fs-4 fw-bold text-dark">
-                {{ spot.amenities.avg_wifi_speed_mbps|default:"—" }}
+      <!-- Typographic Metric Callouts (No Wireframe Boxes) -->
+      <div class="py-3 my-4 border-top border-bottom">
+        <div class="row g-3 text-center text-sm-start align-items-center">
+          <div class="col-4">
+            <div class="typographic-metric-item">
+              <div class="typographic-metric-value">
+                {{ spot.amenities.avg_wifi_speed_mbps|default:"—" }} <small class="fs-6 text-muted fw-normal font-sans">Mbps</small>
               </div>
-              <div class="text-muted font-mono" style="font-size: 0.72rem;">Mbps Download</div>
+              <div class="typographic-metric-label font-mono">Verified Wi-Fi</div>
             </div>
           </div>
-
-          <!-- Outlets -->
-          <div class="col-sm-4">
-            <div class="p-3 border rounded-3 text-center bg-white h-100">
-              <div class="text-muted small mb-1"><i class="bi bi-plug me-1 text-primary"></i>Power Outlets</div>
-              <div class="fw-bold text-dark fs-5 mt-1">
-                {{ spot.amenities.outlet_density|title|default:"Unverified" }}
+          <div class="col-4 border-start">
+            <div class="typographic-metric-item ps-sm-3">
+              <div class="typographic-metric-value fs-4">
+                {{ spot.amenities.outlet_density|title|default:"Standard" }}
               </div>
-              <div class="text-muted" style="font-size: 0.72rem;">Desk Availability</div>
+              <div class="typographic-metric-label font-mono">Power Outlets</div>
             </div>
           </div>
-
-          <!-- Noise -->
-          <div class="col-sm-4">
-            <div class="p-3 border rounded-3 text-center bg-white h-100">
-              <div class="text-muted small mb-1"><i class="bi bi-volume-up me-1 text-warning"></i>Ambient Noise</div>
-              <div class="fw-bold text-dark fs-5 mt-1">
+          <div class="col-4 border-start">
+            <div class="typographic-metric-item ps-sm-3">
+              <div class="typographic-metric-value fs-4">
                 {{ spot.amenities.predominant_noise|title|default:"Moderate" }}
               </div>
-              <div class="text-muted" style="font-size: 0.72rem;">Sound Environment</div>
+              <div class="typographic-metric-label font-mono">Ambient Noise</div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Crowd-Sourced Reviews Feed -->
-      <div class="card card-editorial p-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
+      <!-- Editorial Student Reviews Feed -->
+      <div class="mt-4 pt-2">
+        <div class="d-flex justify-content-between align-items-baseline mb-3 pb-2 border-bottom">
           <div class="d-flex align-items-center gap-2">
-            <h5 class="fw-bold text-dark mb-0">Student Reviews & Speed Tests</h5>
+            <h2 class="h5 fw-bold text-dark mb-0">Community Reviews & Speed Tests</h2>
             <span class="badge bg-secondary-subtle text-dark font-mono rounded-pill px-2 py-0" style="font-size: 0.75rem;">
               {{ reviews|length }}
             </span>
           </div>
           {% if spot.avg_rating %}
           <div class="d-flex align-items-center gap-1 font-mono text-dark fw-bold">
-            <i class="bi bi-star-fill text-warning"></i>
+            <span class="star-icon text-warning">★</span>
             <span>{{ spot.avg_rating }}</span>
             <span class="text-muted fw-normal small">/ 5.0</span>
           </div>
@@ -154,7 +129,7 @@
         {% if reviews %}
         <div class="d-flex flex-column gap-3">
           {% for rev in reviews %}
-          <div class="p-3 rounded-3 border bg-white">
+          <div class="p-3 surface-tonal rounded-3">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div class="d-flex align-items-center gap-2">
                 <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center font-mono" style="width: 32px; height: 32px; font-size: 0.8rem; font-weight: 600;">
@@ -167,13 +142,9 @@
               </div>
 
               <!-- Rating Stars -->
-              <div class="d-flex align-items-center gap-1 font-mono small">
+              <div class="d-flex align-items-center gap-1 font-mono small text-warning">
                 {% for i in "12345" %}
-                  {% if forloop.counter <= rev.overall_rating %}
-                    <i class="bi bi-star-fill text-warning"></i>
-                  {% else %}
-                    <i class="bi bi-star text-muted"></i>
-                  {% endif %}
+                  {% if forloop.counter <= rev.overall_rating %}★{% else %}<span class="text-muted opacity-50">★</span>{% endif %}
                 {% endfor %}
               </div>
             </div>
@@ -221,21 +192,21 @@
         {% else %}
         <div class="text-center py-4 text-muted small">
           <i class="bi bi-chat-square-dots fs-3 d-block mb-2 text-secondary opacity-50"></i>
-          No student reviews recorded yet. Submit the first speed-test using the form on the right.
+          No student reviews recorded yet. Log the first speed-test using the sidebar on the right.
         </div>
         {% endif %}
       </div>
     </div>
 
-    <!-- Sidebar (Right, 4 cols, Sticky) -->
+    <!-- Sticky Right-Hand Action Card (Live Check-In + Review Logging) -->
     <div class="col-lg-4">
-      <div class="sticky-top" style="top: 1.5rem; z-index: 10;">
-        <!-- Live Presence & Action Card -->
-        <div class="card card-editorial p-4 mb-4">
-          <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="sticky-action-card">
+        <!-- Live Presence Section -->
+        <div class="mb-4 pb-3 border-bottom">
+          <div class="d-flex justify-content-between align-items-center mb-2">
             <div class="d-flex align-items-center gap-2">
               <span class="pulse-dot {% if active_checkins %}pulse-dot-active{% endif %}"></span>
-              <h6 class="fw-bold text-dark mb-0">Live Presence</h6>
+              <h3 class="h6 fw-bold text-dark mb-0">Live Presence</h3>
             </div>
             <span class="badge bg-secondary-subtle text-dark font-mono rounded-pill px-2 py-1" style="font-size: 0.75rem;">
               {{ active_checkins|length }} Active
@@ -243,7 +214,7 @@
           </div>
 
           <p class="text-muted small mb-3">
-            Check in when studying here so classmates can see real-time space occupancy.
+            Check in to share your study location with fellow classmates.
           </p>
 
           <!-- Check-in Action -->
@@ -254,7 +225,7 @@
             <button type="submit" class="btn btn-outline-danger w-100 rounded-3 py-2 fw-semibold">
               <i class="bi bi-box-arrow-left me-1"></i>Check Out
             </button>
-            <div class="text-success text-center mt-2 small fw-semibold">
+            <div class="text-success text-center mt-2 small fw-semibold font-mono">
               <i class="bi bi-check-circle-fill me-1"></i>You are checked in here!
             </div>
             {% elif user_active_checkin_elsewhere %}
@@ -262,28 +233,28 @@
               <i class="bi bi-arrow-repeat me-1"></i>Switch Here (from {{ user_active_checkin_elsewhere.spot.name }})
             </button>
             {% else %}
-            <button type="submit" class="btn btn-dark w-100 rounded-3 py-2 fw-semibold">
+            <button type="submit" class="btn btn-brand w-100 rounded-3 py-2 fw-semibold">
               <i class="bi bi-geo-alt-fill me-1"></i>Check In Here
             </button>
             {% endif %}
           </form>
 
           <!-- Save Spot Toggle -->
-          <a href="{% url 'home:toggle_save' spot.id %}" class="btn {% if is_saved %}btn-outline-danger{% else %}btn-outline-secondary{% endif %} w-100 rounded-3 py-2 fw-semibold mb-3">
-            <i class="bi {% if is_saved %}bi-bookmark-fill text-danger{% else %}bi-bookmark{% endif %} me-1"></i>
-            {% if is_saved %}Saved to Bookmarks{% else %}Bookmark Space{% endif %}
+          <a href="{% url 'home:toggle_save' spot.id %}" class="btn {% if is_saved %}btn-outline-danger{% else %}btn-editorial-secondary{% endif %} w-100 rounded-3 py-2 fw-semibold mb-3">
+            <i class="bi {% if is_saved %}bi-heart-fill text-danger{% else %}bi-heart{% endif %} me-1"></i>
+            {% if is_saved %}Saved in Bookmarks{% else %}Bookmark Space{% endif %}
           </a>
           {% else %}
-          <div class="p-3 bg-stone rounded-3 text-center mb-3">
+          <div class="p-3 surface-tonal rounded-3 text-center mb-3">
             <p class="text-muted small mb-2">Log in to check in and bookmark spaces.</p>
-            <a href="{% url 'login:login' %}" class="btn btn-dark btn-sm rounded-3 px-3">Log In</a>
+            <a href="{% url 'login:login' %}" class="btn btn-brand btn-sm rounded-3 px-3">Log In</a>
           </div>
           {% endif %}
 
-          <!-- Currently Checked-in Users List -->
-          <div class="border-top pt-3">
-            <h6 class="spot-card-eyebrow mb-2">Studying Here Now</h6>
-            {% if active_checkins %}
+          <!-- Currently Checked-in Students List -->
+          {% if active_checkins %}
+          <div>
+            <h4 class="spot-card-eyebrow mb-2">Studying Here Now</h4>
             <div class="d-flex flex-column gap-2">
               {% for checkin in active_checkins %}
               <div class="d-flex justify-content-between align-items-center py-1">
@@ -297,23 +268,21 @@
               </div>
               {% endfor %}
             </div>
-            {% else %}
-            <p class="text-muted small mb-0">No active check-ins right now.</p>
-            {% endif %}
           </div>
+          {% endif %}
         </div>
 
-        <!-- Log Review / Speed Test Card -->
-        <div class="card card-editorial p-4">
-          <h6 class="fw-bold text-dark mb-1">
+        <!-- Log Review / Speed Test Section -->
+        <div>
+          <h3 class="h6 fw-bold text-dark mb-1">
             {% if user_review %}Edit Speed Test & Review{% else %}Log Speed Test & Review{% endif %}
-          </h6>
+          </h3>
           <p class="text-muted small mb-3">Submit your telemetry to update verified metrics.</p>
 
           {% if is_authenticated %}
           <form method="post" action="{% url 'home:add_review' spot.id %}">
             {% csrf_token %}
-            <div class="row g-2 mb-2">
+            <div class="row g-2 mb-3">
               <!-- Rating -->
               <div class="col-12">
                 <label class="form-label small fw-semibold text-dark mb-1">Overall Rating (1–5)</label>

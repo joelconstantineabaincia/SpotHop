@@ -4,16 +4,45 @@
 {% block title %}Create Account — SpotHop{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-  <div class="mx-auto" style="max-width: 480px;">
-    <div class="card card-editorial p-4 p-md-5">
-      <div class="text-center mb-4">
-        <div class="d-inline-flex align-items-center gap-2 mb-3">
-          <span class="brand-mark"><i class="bi bi-geo-alt-fill"></i></span>
-          <span class="fw-bold fs-4 text-dark font-mono">SpotHop</span>
+<div class="container py-4">
+  <div class="auth-split-wrapper">
+    <!-- Left: Atmospheric Study Visual & Cebu Student Headline -->
+    <div class="auth-visual-side">
+      <!-- Atmospheric Backdrop Graphic -->
+      <div style="position: absolute; inset: 0; background: radial-gradient(circle at 80% 20%, rgba(34, 197, 94, 0.25) 0%, transparent 60%), linear-gradient(145deg, #062819 0%, #0F5132 50%, #093320 100%); z-index: 1;"></div>
+      
+      <!-- Architectural Graphic Pattern -->
+      <svg style="position: absolute; left: -20px; bottom: -20px; width: 340px; height: 340px; opacity: 0.12; z-index: 2;" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="100" cy="100" r="80" stroke="white" stroke-width="2"/>
+        <line x1="20" y1="100" x2="180" y2="100" stroke="white" stroke-width="2"/>
+        <line x1="100" y1="20" x2="100" y2="180" stroke="white" stroke-width="2"/>
+        <rect x="70" y="70" width="60" height="60" rx="8" fill="white" fill-opacity="0.2"/>
+      </svg>
+
+      <div style="position: relative; z-index: 3;">
+        <div class="d-inline-flex align-items-center gap-2 mb-3 px-3 py-1 bg-white bg-opacity-10 rounded-pill font-mono small">
+          <i class="bi bi-mortarboard-fill text-warning"></i>
+          <span>Student Community</span>
         </div>
-        <h2 class="h4 fw-bold text-dark mb-1">Create student account</h2>
-        <p class="text-muted small mb-0">Join the Cebu student directory to discover study spaces and log Wi-Fi speeds.</p>
+        <h2 class="display-6 fw-bold text-white mb-3" style="letter-spacing: -0.03em;">
+          Your campus study companion.
+        </h2>
+        <p class="text-white-50 mb-4" style="max-width: 420px; font-size: 0.95rem; line-height: 1.6;">
+          Join thousands of university students in Cebu sharing verified Wi-Fi speed logs, power outlet ratings, and live study sessions.
+        </p>
+        <div class="d-flex align-items-center gap-3 text-white-50 small font-mono">
+          <span><strong class="text-white">USC · CIT-U · UP · UC</strong></span>
+          <span>&bull;</span>
+          <span><strong class="text-white">100% Free</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: High-Contrast Form Card -->
+    <div class="auth-form-side">
+      <div class="mb-4">
+        <h1 class="h3 fw-bold text-dark mb-1">Create student account</h1>
+        <p class="text-muted small mb-0">Sign up to bookmark study spaces and record verified speed tests.</p>
       </div>
 
       {% if error %}
@@ -57,7 +86,7 @@
         </button>
       </form>
 
-      <div class="text-center pt-3 border-top">
+      <div class="pt-3 border-top text-center text-md-start">
         <p class="small text-muted mb-0">
           Already have an account?
           <a href="{% url 'login:login' %}" class="fw-semibold text-dark text-decoration-none">Sign in</a>
