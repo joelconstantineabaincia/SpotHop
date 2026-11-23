@@ -1,99 +1,103 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Study Preferences & App Settings - SpotHop{% endblock %}
+{% block title %}Settings & Preferences — SpotHop{% endblock %}
 
 {% block content %}
 <div class="container py-4" style="max-width: 760px;">
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small mb-0 text-muted">
+      <li class="breadcrumb-item"><a href="{% url 'home:home' %}" class="text-decoration-none text-muted">Directory</a></li>
+      <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Settings</li>
+    </ol>
+  </nav>
+
   <div class="mb-4">
-    <h2 class="fw-bold mb-1">
-      <i class="bi bi-sliders text-success me-2"></i>Preferences & Settings
-    </h2>
-    <p class="text-muted">Customize your ideal study conditions and application appearance.</p>
+    <h1 class="h3 fw-bold text-dark mb-1">Preferences & Settings</h1>
+    <p class="text-muted small mb-0">Configure your study criteria and application appearance.</p>
   </div>
 
   <form method="post" action="{% url 'user_settings:user_settings' %}">
     {% csrf_token %}
 
     <!-- Card 1: Study Spot Preferences -->
-    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-body">
-      <h5 class="fw-bold mb-3 text-success">
-        <i class="bi bi-stars me-2"></i>Study Environment Preferences
-      </h5>
-      <p class="text-muted small mb-4">
-        These settings are automatically applied when you click <strong>"Match My Preferences"</strong> on the study spot directory.
+    <div class="card card-editorial p-4 mb-4">
+      <div class="spot-card-eyebrow mb-1">Study Filters</div>
+      <h5 class="fw-bold text-dark mb-1">Environment Preferences</h5>
+      <p class="text-muted small mb-3">
+        Applied automatically when clicking <strong>"Match My Preferences"</strong> on the study spot directory.
       </p>
 
-      <div class="row g-4">
+      <div class="row g-3">
         <!-- Preferred Noise -->
         <div class="col-md-6">
-          <label class="form-label fw-semibold small">Preferred Noise Level</label>
-          <select name="preferred_noise_level" class="form-select">
-            <option value="SILENT" {% if settings_user.preferred_noise_level == 'SILENT' %}selected{% endif %}>🤫 Silent (Library quiet, deep concentration)</option>
-            <option value="QUIET" {% if settings_user.preferred_noise_level == 'QUIET' or not settings_user.preferred_noise_level %}selected{% endif %}>🍃 Quiet (Soft ambient background)</option>
-            <option value="MODERATE" {% if settings_user.preferred_noise_level == 'MODERATE' %}selected{% endif %}>💬 Moderate (Bustling café, group discussion)</option>
-            <option value="LOUD" {% if settings_user.preferred_noise_level == 'LOUD' %}selected{% endif %}>🔊 Lively / Energetic</option>
+          <label class="form-label fw-semibold small text-dark mb-1">Preferred Ambient Noise</label>
+          <select name="preferred_noise_level" class="form-select form-select-sm">
+            <option value="SILENT" {% if settings_user.preferred_noise_level == 'SILENT' %}selected{% endif %}>Silent — Deep focus, library silence</option>
+            <option value="QUIET" {% if settings_user.preferred_noise_level == 'QUIET' or not settings_user.preferred_noise_level %}selected{% endif %}>Quiet — Soft background ambient</option>
+            <option value="MODERATE" {% if settings_user.preferred_noise_level == 'MODERATE' %}selected{% endif %}>Moderate — Café chatter, group work</option>
+            <option value="LOUD" {% if settings_user.preferred_noise_level == 'LOUD' %}selected{% endif %}>Lively — High energy</option>
           </select>
         </div>
 
         <!-- Preferred Outlets -->
         <div class="col-md-6">
-          <label class="form-label fw-semibold small">Preferred Power Outlets</label>
-          <select name="preferred_outlet_density" class="form-select">
-            <option value="PLENTIFUL" {% if settings_user.preferred_outlet_density == 'PLENTIFUL' or not settings_user.preferred_outlet_density %}selected{% endif %}>🔌 Plentiful (Sockets at almost every seat)</option>
-            <option value="SCARCE" {% if settings_user.preferred_outlet_density == 'SCARCE' %}selected{% endif %}>🔌 Moderate / Scarce (Shared power strips)</option>
-            <option value="NONE" {% if settings_user.preferred_outlet_density == 'NONE' %}selected{% endif %}>Battery Only (No outlets needed)</option>
+          <label class="form-label fw-semibold small text-dark mb-1">Power Outlet Density</label>
+          <select name="preferred_outlet_density" class="form-select form-select-sm">
+            <option value="PLENTIFUL" {% if settings_user.preferred_outlet_density == 'PLENTIFUL' or not settings_user.preferred_outlet_density %}selected{% endif %}>Plentiful — Outlets at nearly every desk</option>
+            <option value="SCARCE" {% if settings_user.preferred_outlet_density == 'SCARCE' %}selected{% endif %}>Scarce — Shared wall sockets</option>
+            <option value="NONE" {% if settings_user.preferred_outlet_density == 'NONE' %}selected{% endif %}>None — Battery power only</option>
           </select>
         </div>
 
         <!-- Minimum Wi-Fi Speed -->
         <div class="col-12">
-          <label class="form-label fw-semibold small">Minimum Desired Wi-Fi Speed</label>
-          <div class="input-group">
-            <input type="number" step="1" name="min_wifi_speed_mbps" class="form-control" value="{{ settings_user.min_wifi_speed_mbps|floatformat:0|default:'20' }}" min="0" max="1000">
-            <span class="input-group-text">Mbps</span>
+          <label class="form-label fw-semibold small text-dark mb-1">Minimum Wi-Fi Speed</label>
+          <div class="input-group input-group-sm" style="max-width: 240px;">
+            <input type="number" step="1" name="min_wifi_speed_mbps" class="form-control font-mono" value="{{ settings_user.min_wifi_speed_mbps|floatformat:0|default:'20' }}" min="0" max="1000">
+            <span class="input-group-text font-mono">Mbps</span>
           </div>
-          <small class="text-muted">Spots with average speeds lower than this will be filtered out when matching preferences.</small>
+          <small class="text-muted" style="font-size: 0.72rem;">Spaces below this verified speed will be excluded when matching preferences.</small>
         </div>
       </div>
     </div>
 
     <!-- Card 2: Appearance & Notifications -->
-    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-body">
-      <h5 class="fw-bold mb-3 text-primary">
-        <i class="bi bi-palette-fill me-2"></i>Appearance & Notifications
-      </h5>
+    <div class="card card-editorial p-4 mb-4">
+      <div class="spot-card-eyebrow mb-1">System</div>
+      <h5 class="fw-bold text-dark mb-3">Appearance & Notifications</h5>
 
       <!-- Dark Mode Toggle Switch -->
       <div class="d-flex justify-content-between align-items-center py-3 border-bottom">
         <div>
-          <div class="fw-semibold">Dark Mode</div>
-          <small class="text-muted">Use high-contrast dark theme for late-night study sessions</small>
+          <div class="fw-semibold text-dark small">Obsidian Dark Theme</div>
+          <small class="text-muted" style="font-size: 0.75rem;">Optimized high-contrast palette for late-night study sessions</small>
         </div>
-        <div class="form-check form-switch fs-4">
+        <div class="form-check form-switch fs-5">
           <input class="form-check-input" type="checkbox" role="switch" name="dark_mode" id="darkModeSwitch" {% if settings_user.dark_mode %}checked{% endif %}>
         </div>
       </div>
 
       <!-- Email Notifications Toggle Switch -->
-      <div class="d-flex justify-content-between align-items-center py-3">
+      <div class="d-flex justify-content-between align-items-center pt-3">
         <div>
-          <div class="fw-semibold">Email Notifications</div>
-          <small class="text-muted">Receive updates about newly added study spots and review replies</small>
+          <div class="fw-semibold text-dark small">Campus Study Alerts</div>
+          <small class="text-muted" style="font-size: 0.75rem;">Receive digest updates for newly verified study spots in Cebu</small>
         </div>
-        <div class="form-check form-switch fs-4">
+        <div class="form-check form-switch fs-5">
           <input class="form-check-input" type="checkbox" role="switch" name="email_notifications" id="emailNotifsSwitch" {% if settings_user.email_notifications %}checked{% endif %}>
         </div>
       </div>
     </div>
 
-    <!-- Submit Button -->
+    <!-- Action Buttons -->
     <div class="d-flex justify-content-between align-items-center">
-      <a href="{% url 'home:home' %}" class="btn btn-outline-secondary rounded-pill px-4">
+      <a href="{% url 'home:home' %}" class="btn btn-outline-secondary rounded-3 px-4 py-2 small">
         Cancel
       </a>
-      <button type="submit" class="btn btn-spothop rounded-pill px-5">
-        <i class="bi bi-save me-1"></i> Save Changes
+      <button type="submit" class="btn btn-brand rounded-3 px-4 py-2 fw-semibold">
+        Save Preferences
       </button>
     </div>
   </form>
@@ -102,7 +106,7 @@
 
 {% block extra_js %}
 <script>
-  // Dynamic live dark mode toggle preview on the settings page
+  // Live dark mode toggle preview synchronized with theme switch
   const darkModeSwitch = document.getElementById('darkModeSwitch');
   if (darkModeSwitch) {
     darkModeSwitch.addEventListener('change', function() {
