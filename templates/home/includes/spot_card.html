@@ -1,0 +1,92 @@
+{% load static %}
+<div class="col-lg-4 col-md-6 col-12">
+  <div class="editorial-spot-card">
+    <!-- 16:10 Full-Bleed Cover Image Container with Glass Badges -->
+    <div class="card-media-wrapper">
+      <a href="{% url 'home:spot_detail' spot.id %}" class="card-media-link" aria-label="View {{ spot.name }}">
+        <img
+          src="{{ spot.cover_image_url }}"
+          alt="{{ spot.name }}"
+          class="card-cover-img"
+          loading="lazy"
+          onerror="this.onerror=null;this.src='{{ spot.cover_fallback_svg }}';"
+        >
+      </a>
+
+      <!-- Top-Left: Glass Open/Closed Pill -->
+      <div class="badge-glass-pill badge-glass-top-left">
+        {% if spot.is_open_now %}
+          <span class="status-indicator-dot open"></span>
+          <span class="badge-label font-mono">OPEN</span>
+        {% else %}
+          <span class="status-indicator-dot closed"></span>
+          <span class="badge-label font-mono">CLOSED</span>
+        {% endif %}
+      </div>
+
+      <!-- Top-Right: Translucent Circular Bookmark/Heart Button -->
+      {% if is_authenticated or is_saved_view %}
+        <a
+          href="{% url 'home:toggle_save' spot.id %}"
+          class="badge-glass-circle badge-glass-top-right {% if is_saved_view or spot.id in saved_spot_ids %}saved{% endif %}"
+          title="{% if is_saved_view or spot.id in saved_spot_ids %}Remove from saved{% else %}Save spot{% endif %}"
+          aria-label="{% if is_saved_view or spot.id in saved_spot_ids %}Remove from saved{% else %}Save spot{% endif %}"
+          data-spot-id="{{ spot.id }}"
+        >
+          <i class="bi {% if is_saved_view or spot.id in saved_spot_ids %}bi-heart-fill text-danger{% else %}bi-heart text-white{% endif %}"></i>
+        </a>
+      {% endif %}
+
+      <!-- Bottom-Left: Emerald Pulse Pill (Only when active_checkins > 0) -->
+      {% if spot.active_checkins_count > 0 %}
+        <div class="badge-glass-pill badge-glass-bottom-left badge-emerald-live font-mono">
+          <span class="pulse-dot pulse-dot-active"></span>
+          <span>{{ spot.active_checkins_count }} studying</span>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Borderless Editorial Text Details -->
+    <div class="card-details-wrapper pt-2">
+      <!-- Row 1: Spot Name + Rating -->
+      <div class="d-flex justify-content-between align-items-baseline gap-2 mb-1">
+        <h3 class="spot-title h6 fw-bold mb-0 text-truncate">
+          <a href="{% url 'home:spot_detail' spot.id %}" class="text-decoration-none text-dark">
+            {{ spot.name }}
+          </a>
+        </h3>
+        <div class="spot-rating font-mono text-nowrap small">
+          {% if spot.avg_rating %}
+            <span class="star-icon">★</span>
+            <span class="fw-bold">{{ spot.avg_rating }}</span>
+          {% else %}
+            <span class="text-muted" style="font-size: 0.75rem;">New</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Row 2: Address/Neighborhood + Price Tier -->
+      <div class="d-flex justify-content-between align-items-center gap-2 mb-1 text-muted small">
+        <span class="spot-location text-truncate" title="{{ spot.address }}">
+          {{ spot.address }}
+        </span>
+        <span class="spot-price font-mono fw-semibold text-secondary text-nowrap">
+          {{ spot.price_tier_display }}
+        </span>
+      </div>
+
+      <!-- Row 3: Spec Line in JetBrains Mono -->
+      <div class="spot-spec-line font-mono text-muted text-truncate" style="font-size: 0.76rem;">
+        {% if spot.amenities.avg_wifi_speed_mbps %}
+          <span class="text-dark fw-medium">{{ spot.amenities.avg_wifi_speed_mbps }} Mbps</span>
+        {% else %}
+          <span>Wi-Fi unverified</span>
+        {% endif %}
+        <span> · </span>
+        <span>{{ spot.amenities.outlet_density|title|default:"Standard" }} outlets</span>
+        <span> · </span>
+        <span>{{ spot.amenities.predominant_noise|title|default:"Moderate" }}</span>
+      </div>
+    </div>
+  </div>
+</div>

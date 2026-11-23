@@ -1,131 +1,39 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Saved Study Spots — SpotHop{% endblock %}
+{% block title %}Saved Study Spaces — SpotHop{% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container py-3">
   <!-- Editorial Page Header -->
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4 pb-2 border-bottom">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 mb-4 pb-2 border-bottom">
     <div>
-      <span class="eyebrow-text d-block mb-1">
-        <i class="bi bi-bookmark-heart text-danger me-1"></i> Personal Study Collection
-      </span>
-      <h1 class="text-editorial-title mb-1">Saved Study Spots</h1>
-      <p class="text-editorial-subhead mb-0">
-        Your bookmarked campus cafés, university libraries, and co-working spaces in Cebu.
+      <h1 class="h4 fw-bold text-dark mb-1">Your Saved Study Spaces</h1>
+      <p class="text-muted small mb-0 font-mono">
+        {{ total_saved }} bookmarked campus cafés, university libraries, and co-working hubs in Cebu.
       </p>
     </div>
-    <a href="{% url 'home:home' %}" class="btn btn-editorial-secondary btn-sm px-3 d-inline-flex align-items-center gap-2">
+    <a href="{% url 'home:home' %}" class="btn btn-editorial-secondary btn-sm px-3 d-inline-flex align-items-center gap-1 font-mono">
       <i class="bi bi-compass"></i>
-      <span>Browse All Spots</span>
+      <span>Explore All Spaces</span>
     </a>
   </div>
 
   {% if spots %}
-  <!-- Saved Spots Grid -->
-  <div class="row g-3">
+  <!-- Saved Spots Grid (Reusing Shared Card Partial) -->
+  <div class="row g-4">
     {% for spot in spots %}
-    <div class="col-lg-4 col-md-6">
-      <div class="spot-card-editorial">
-        <!-- 16:9 Venue Cover Image -->
-        <div class="venue-cover-wrapper">
-          <img src="{{ spot.cover_image_url }}" alt="{{ spot.name }}" class="venue-cover-img" loading="lazy" onerror="this.onerror=null;this.src='{{ spot.cover_fallback_svg }}';">
-        </div>
-
-        <div class="p-3 d-flex flex-column flex-grow-1">
-          <!-- Card Top Bar: Eyebrow Category/Price & Status Dot & Bookmark -->
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <div class="d-flex align-items-center gap-2">
-              <!-- Category & Price Eyebrow -->
-              <span class="eyebrow-text font-mono">
-                {{ spot.category }} &bull; {{ spot.price_tier_display }}
-              </span>
-              <!-- Open/Closed Status Dot -->
-              <span class="d-inline-flex align-items-center gap-1 small text-muted" style="font-size: 0.75rem;">
-                <span class="status-dot {% if spot.is_open_now %}open{% else %}closed{% endif %}"></span>
-                {% if spot.is_open_now %}Open{% else %}Closed{% endif %}
-              </span>
-            </div>
-
-            <!-- Unsave Action Button -->
-            <a href="{% url 'home:toggle_save' spot.id %}" class="bookmark-editorial-btn saved" title="Remove from saved" data-spot-id="{{ spot.id }}">
-              <i class="bi bi-bookmark-heart-fill"></i>
-            </a>
-          </div>
-
-        <!-- Spot Name -->
-        <h5 class="fw-bold mb-1" style="font-size: 1.05rem;">
-          <a href="{% url 'home:spot_detail' spot.id %}" class="text-decoration-none text-dark stretched-link">
-            {{ spot.name }}
-          </a>
-        </h5>
-
-        <!-- Spot Address -->
-        <p class="text-muted small mb-2 text-truncate" title="{{ spot.address }}">
-          <i class="bi bi-geo-alt me-1 text-secondary"></i>{{ spot.address }}
-        </p>
-
-        <!-- Hours -->
-        <div class="text-muted small font-mono mb-3" style="font-size: 0.78rem;">
-          <i class="bi bi-clock me-1"></i>
-          {% if spot.opening_time and spot.closing_time %}
-            {{ spot.opening_time|time:"g:i A" }} – {{ spot.closing_time|time:"g:i A" }}
-          {% else %}
-            Hours Unspecified
-          {% endif %}
-        </div>
-
-        <!-- Inline Metadata / Telemetry Row -->
-        <div class="d-flex flex-wrap gap-1 mb-3">
-          <span class="telemetry-chip font-mono">
-            <i class="bi bi-wifi"></i>
-            <span>{{ spot.amenities.avg_wifi_speed_mbps|default:"—" }} Mbps</span>
-          </span>
-          <span class="telemetry-chip">
-            <i class="bi bi-plug"></i>
-            <span>{{ spot.amenities.outlet_density|title|default:"Unverified" }}</span>
-          </span>
-          <span class="telemetry-chip">
-            <i class="bi bi-soundwave"></i>
-            <span>{{ spot.amenities.predominant_noise|title|default:"Moderate" }}</span>
-          </span>
-        </div>
-
-        <!-- Card Footer -->
-        <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
-          <div class="d-flex align-items-center gap-1 font-mono small">
-            {% if spot.avg_rating %}
-            <span style="color: var(--sh-rating-star);"><i class="bi bi-star-fill"></i></span>
-            <span class="fw-bold text-dark">{{ spot.avg_rating }}</span>
-            <span class="text-muted" style="font-size: 0.72rem;">({{ spot.reviews_count }})</span>
-            {% else %}
-            <span class="text-muted" style="font-size: 0.75rem;">No reviews yet</span>
-            {% endif %}
-          </div>
-
-          <div>
-            {% if spot.active_checkins_count > 0 %}
-            <span class="telemetry-chip font-mono" style="border-color: var(--sh-brand-border); background-color: var(--sh-brand-surface); color: var(--sh-brand-text); font-weight: 600;">
-              <span class="live-pulse-dot"></span>
-              {{ spot.active_checkins_count }} studying
-            </span>
-            {% endif %}
-          </div>
-        </div>
-        </div>
-      </div>
-    </div>
+      {% include 'home/includes/spot_card.html' with spot=spot is_saved_view=True %}
     {% endfor %}
   </div>
   {% else %}
-  <div class="surface-card p-5 text-center rounded-3">
+  <div class="surface-tonal p-5 text-center rounded-4">
     <div class="py-5">
-      <i class="bi bi-bookmark-heart fs-1 text-danger mb-2 d-block"></i>
-      <h5 class="fw-bold">No saved study spots yet</h5>
-      <p class="text-editorial-subhead small mb-3">Click the heart bookmark icon on any study space card to save it for quick reference.</p>
-      <a href="{% url 'home:home' %}" class="btn btn-editorial-primary btn-sm px-4">
-        Discover Study Spots
+      <i class="bi bi-heart fs-1 text-danger mb-2 d-block opacity-75"></i>
+      <h5 class="fw-bold text-dark">No saved study spaces yet</h5>
+      <p class="text-muted small mb-3">Click the heart bookmark icon on any study space card to save it for quick access.</p>
+      <a href="{% url 'home:home' %}" class="btn btn-brand btn-sm px-4">
+        Explore Directory
       </a>
     </div>
   </div>

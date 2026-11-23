@@ -4,330 +4,163 @@
 {% block title %}SpotHop — Cebu Study Spot & Work Café Directory{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-  <!-- Compact Editorial Header -->
-  <div class="mb-4 pb-2 border-bottom">
-    <div class="row align-items-end g-3">
-      <div class="col-lg-8">
-        <span class="eyebrow-text d-block mb-1">
-          <i class="bi bi-mortarboard-fill text-success me-1"></i> Cebu Academic &amp; Tech Hubs
-        </span>
-        <h1 class="text-editorial-title mb-2">
-          Study Spots &amp; Work Cafés
-        </h1>
-        <p class="text-editorial-subhead mb-3" style="max-width: 680px;">
-          Find spaces near your campus verified for actual Wi-Fi download speeds, available power outlets, noise environment, and real-time student presence.
-        </p>
+<div class="container py-3">
+  <!-- Minimalist Editorial Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2 mb-3">
+    <div>
+      <h1 class="h4 fw-bold text-dark mb-0">Discover Study Spaces in Cebu</h1>
+      <p class="text-muted small mb-0 font-mono">
+        {{ total_spots_count }} spaces · {{ active_checkins_total }} students studying now · {{ total_reviews_count }} verified reviews
+      </p>
+    </div>
+    {% if is_authenticated %}
+    <div>
+      <a href="?match_prefs=1" class="btn btn-sm {% if match_prefs == '1' %}btn-brand{% else %}btn-editorial-secondary{% endif %} d-inline-flex align-items-center gap-1 font-mono">
+        <i class="bi bi-sliders2"></i>
+        <span>Match My Preferences</span>
+      </a>
+      {% if match_prefs == '1' %}
+      <a href="{% url 'home:home' %}" class="small text-muted text-decoration-none ms-2 font-mono" title="Clear preferences">
+        <i class="bi bi-x-circle"></i> Clear
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
 
-        <!-- Subtle Inline Telemetry Bar -->
-        <div class="d-flex flex-wrap align-items-center gap-3 small text-muted font-mono">
-          <span><strong class="text-dark">{{ total_spots_count }}</strong> verified spaces</span>
-          <span>&bull;</span>
-          <span><strong class="text-dark">{{ active_checkins_total }}</strong> active check-ins</span>
-          <span>&bull;</span>
-          <span><strong class="text-dark">{{ total_reviews_count }}</strong> student reviews</span>
-        </div>
-      </div>
-
-      <!-- Quick Preferences Match Action -->
-      <div class="col-lg-4 text-lg-end">
-        {% if is_authenticated %}
-        <div class="d-inline-flex flex-column align-items-lg-end gap-1">
-          <a href="?match_prefs=1" class="btn btn-sm {% if match_prefs == '1' %}btn-editorial-primary{% else %}btn-editorial-secondary{% endif %} d-inline-flex align-items-center gap-2">
-            <i class="bi bi-sliders2"></i>
-            <span>Match My Study Preferences</span>
-          </a>
-          {% if match_prefs == '1' %}
-          <div class="d-flex align-items-center gap-2 mt-1">
-            <span class="small text-success fw-medium font-mono" style="font-size: 0.76rem;">
-              <i class="bi bi-check2"></i> Filters Applied
-            </span>
-            <a href="{% url 'home:home' %}" class="small text-muted text-decoration-none" title="Reset preference matching">
-              <i class="bi bi-x-circle"></i> Clear
-            </a>
-          </div>
-          {% endif %}
-        </div>
-        {% endif %}
-      </div>
+  <!-- Compact Horizontal Curated Highlights Strip -->
+  <div class="curated-strip mb-3">
+    <div class="d-flex align-items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+      <span class="curated-label font-mono text-uppercase text-muted small fw-bold text-nowrap">
+        <i class="bi bi-stars text-warning me-1"></i>Curated:
+      </span>
+      {% for tr in top_rated_spots %}
+      <a href="{% url 'home:spot_detail' tr.spot_id %}" class="curated-chip text-nowrap" title="Top-Rated: {{ tr.name }}">
+        <span class="text-warning">★ {{ tr.avg_rating }}</span>
+        <span class="fw-semibold text-dark">{{ tr.name }}</span>
+      </a>
+      {% endfor %}
+      <span class="text-muted opacity-50">|</span>
+      {% for ln in late_night_hubs %}
+      <a href="{% url 'home:spot_detail' ln.spot_id %}" class="curated-chip text-nowrap" title="Late-Night Hub: {{ ln.name }}">
+        <i class="bi bi-moon-stars text-success"></i>
+        <span class="fw-semibold text-dark">{{ ln.name }}</span>
+        <span class="font-mono text-muted small">{{ ln.avg_wifi_speed_mbps }} Mbps</span>
+      </a>
+      {% endfor %}
     </div>
   </div>
 
-  <!-- Integrated Filter & Search Toolbar -->
-  <div class="filter-toolbar mb-4">
-    <form method="get" action="{% url 'home:home' %}" id="filterForm">
-      <div class="row g-2 align-items-center">
-        <!-- Search Query -->
-        <div class="col-lg-4 col-md-6 col-12">
-          <div class="input-group">
-            <span class="input-group-text bg-transparent border-end-0 text-muted" style="border-color: var(--sh-border);">
+  <!-- Slim Sticky Category & Filter Toolbar -->
+  <div class="sticky-filter-wrapper mb-4">
+    <form method="get" action="{% url 'home:home' %}" id="filterForm" class="sticky-filter-form">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 p-2">
+        <!-- Category Pills (Submits directly via name="category") -->
+        <div class="d-flex align-items-center gap-1 overflow-x-auto no-scrollbar py-1">
+          <button type="submit" name="category" value="" class="category-pill-btn {% if not category %}active{% endif %}">
+            All Spaces
+          </button>
+          <button type="submit" name="category" value="CAFE" class="category-pill-btn {% if category == 'CAFE' %}active{% endif %}">
+            <i class="bi bi-cup-hot"></i> Cafés
+          </button>
+          <button type="submit" name="category" value="LIBRARY" class="category-pill-btn {% if category == 'LIBRARY' %}active{% endif %}">
+            <i class="bi bi-book"></i> Libraries
+          </button>
+          <button type="submit" name="category" value="COWORKING" class="category-pill-btn {% if category == 'COWORKING' %}active{% endif %}">
+            <i class="bi bi-laptop"></i> Co-Working
+          </button>
+          <button type="submit" name="category" value="LOUNGE" class="category-pill-btn {% if category == 'LOUNGE' %}active{% endif %}">
+            <i class="bi bi-building"></i> Lounges
+          </button>
+        </div>
+
+        <!-- Filter Action Controls (Search, Dropdown Pills, Open Now, Submit) -->
+        <div class="d-flex flex-wrap align-items-center gap-2 ms-auto">
+          <!-- Search Input -->
+          <div class="input-group input-group-sm filter-search-box" style="width: 220px;">
+            <span class="input-group-text bg-transparent border-end-0 text-muted ps-2 pe-1">
               <i class="bi bi-search"></i>
             </span>
-            <input type="text" name="q" class="form-control form-control-editorial border-start-0" placeholder="Search spot name, campus area, street..." value="{{ q }}">
+            <input type="text" name="q" class="form-control border-start-0 ps-1" placeholder="Search name, area..." value="{{ q }}">
           </div>
-        </div>
 
-        <!-- Category -->
-        <div class="col-lg-2 col-md-3 col-6">
-          <select name="category" class="form-select form-select-editorial">
-            <option value="">All Categories</option>
-            <option value="CAFE" {% if category == 'CAFE' %}selected{% endif %}>Cafés</option>
-            <option value="LIBRARY" {% if category == 'LIBRARY' %}selected{% endif %}>Libraries</option>
-            <option value="COWORKING" {% if category == 'COWORKING' %}selected{% endif %}>Co-working</option>
-            <option value="LOUNGE" {% if category == 'LOUNGE' %}selected{% endif %}>Campus Lounges</option>
+          <!-- Price Dropdown Pill -->
+          <select name="price_tier" class="form-select form-select-sm filter-dropdown-pill font-mono" aria-label="Filter by price">
+            <option value="">Price</option>
+            <option value="FREE" {% if price_tier == 'FREE' %}selected{% endif %}>Free</option>
+            <option value="₱" {% if price_tier == '₱' %}selected{% endif %}>₱</option>
+            <option value="₱₱" {% if price_tier == '₱₱' %}selected{% endif %}>₱₱</option>
+            <option value="₱₱₱" {% if price_tier == '₱₱₱' %}selected{% endif %}>₱₱₱</option>
           </select>
-        </div>
 
-        <!-- Price Tier -->
-        <div class="col-lg-2 col-md-3 col-6">
-          <select name="price_tier" class="form-select form-select-editorial font-mono">
-            <option value="">Any Price</option>
-            <option value="FREE" {% if price_tier == 'FREE' %}selected{% endif %}>FREE</option>
-            <option value="₱" {% if price_tier == '₱' %}selected{% endif %}>₱ (Budget)</option>
-            <option value="₱₱" {% if price_tier == '₱₱' %}selected{% endif %}>₱₱ (Moderate)</option>
-            <option value="₱₱₱" {% if price_tier == '₱₱₱' %}selected{% endif %}>₱₱₱ (Premium)</option>
+          <!-- Wi-Fi Dropdown Pill -->
+          <select name="min_wifi" class="form-select form-select-sm filter-dropdown-pill font-mono" aria-label="Filter by minimum Wi-Fi speed">
+            <option value="">Wi-Fi</option>
+            <option value="25" {% if min_wifi == '25' %}selected{% endif %}>≥ 25 Mbps</option>
+            <option value="50" {% if min_wifi == '50' %}selected{% endif %}>≥ 50 Mbps</option>
+            <option value="100" {% if min_wifi == '100' %}selected{% endif %}>≥ 100 Mbps</option>
           </select>
-        </div>
 
-        <!-- Power Outlets -->
-        <div class="col-lg-2 col-md-3 col-6">
-          <select name="outlet_density" class="form-select form-select-editorial">
-            <option value="">Any Outlets</option>
+          <!-- Outlets Dropdown Pill -->
+          <select name="outlet_density" class="form-select form-select-sm filter-dropdown-pill" aria-label="Filter by power outlet availability">
+            <option value="">Outlets</option>
             <option value="PLENTIFUL" {% if outlet_density == 'PLENTIFUL' %}selected{% endif %}>Plentiful</option>
             <option value="SCARCE" {% if outlet_density == 'SCARCE' %}selected{% endif %}>Scarce</option>
             <option value="NONE" {% if outlet_density == 'NONE' %}selected{% endif %}>None</option>
           </select>
-        </div>
 
-        <!-- Noise Environment -->
-        <div class="col-lg-2 col-md-3 col-6">
-          <select name="predominant_noise" class="form-select form-select-editorial">
-            <option value="">Any Noise</option>
+          <!-- Noise Dropdown Pill -->
+          <select name="predominant_noise" class="form-select form-select-sm filter-dropdown-pill" aria-label="Filter by noise level">
+            <option value="">Noise</option>
             <option value="SILENT" {% if predominant_noise == 'SILENT' %}selected{% endif %}>Silent</option>
             <option value="QUIET" {% if predominant_noise == 'QUIET' %}selected{% endif %}>Quiet</option>
             <option value="MODERATE" {% if predominant_noise == 'MODERATE' %}selected{% endif %}>Moderate</option>
-            <option value="LOUD" {% if predominant_noise == 'LOUD' %}selected{% endif %}>Lively / Loud</option>
+            <option value="LOUD" {% if predominant_noise == 'LOUD' %}selected{% endif %}>Lively</option>
           </select>
-        </div>
 
-        <!-- Second Row: Min Wi-Fi, Sorting, Open Now Toggle, Action Buttons -->
-        <div class="col-lg-3 col-md-4 col-6 mt-2">
-          <select name="min_wifi" class="form-select form-select-editorial font-mono">
-            <option value="">Any Wi-Fi Speed</option>
-            <option value="25" {% if min_wifi == '25' %}selected{% endif %}>&ge; 25 Mbps</option>
-            <option value="50" {% if min_wifi == '50' %}selected{% endif %}>&ge; 50 Mbps</option>
-            <option value="100" {% if min_wifi == '100' %}selected{% endif %}>&ge; 100 Mbps (Fiber)</option>
-          </select>
-        </div>
-
-        <div class="col-lg-3 col-md-4 col-6 mt-2">
-          <select name="sort_by" class="form-select form-select-editorial">
+          <!-- Sort Dropdown Pill -->
+          <select name="sort_by" class="form-select form-select-sm filter-dropdown-pill" aria-label="Sort spaces">
             <option value="default" {% if sort_by == 'default' %}selected{% endif %}>Sort: Featured</option>
-            <option value="rating" {% if sort_by == 'rating' %}selected{% endif %}>Highest Rated</option>
+            <option value="rating" {% if sort_by == 'rating' %}selected{% endif %}>Top Rated</option>
             <option value="wifi" {% if sort_by == 'wifi' %}selected{% endif %}>Fastest Wi-Fi</option>
-            <option value="occupancy" {% if sort_by == 'occupancy' %}selected{% endif %}>Most Active Students</option>
+            <option value="occupancy" {% if sort_by == 'occupancy' %}selected{% endif %}>Most Active</option>
             <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name (A–Z)</option>
           </select>
-        </div>
 
-        <div class="col-lg-3 col-md-4 col-6 mt-2 d-flex align-items-center">
-          <div class="form-check form-switch mb-0">
+          <!-- Open Now Switch -->
+          <div class="form-check form-switch mb-0 d-flex align-items-center gap-1">
             <input class="form-check-input" type="checkbox" role="switch" name="open_now" value="1" id="openNowSwitch" {% if open_now == '1' %}checked{% endif %} onchange="this.form.submit()">
-            <label class="form-check-label small fw-semibold text-secondary" for="openNowSwitch">Open Now Only</label>
+            <label class="form-check-label small text-secondary text-nowrap" for="openNowSwitch">Open Now</label>
           </div>
-        </div>
 
-        <div class="col-lg-3 col-12 mt-2 d-flex gap-2 justify-content-end">
-          <button type="submit" class="btn btn-editorial-primary flex-grow-1">Filter</button>
-          <a href="{% url 'home:home' %}" class="btn btn-editorial-secondary px-3" title="Reset Filters">
-            <i class="bi bi-arrow-counterclockwise"></i>
+          <!-- Submit Button -->
+          <button type="submit" class="btn btn-sm btn-brand px-3">Filter</button>
+
+          {% if q or category or price_tier or min_wifi or outlet_density or predominant_noise or open_now or sort_by != 'default' or match_prefs %}
+          <a href="{% url 'home:home' %}" class="btn btn-sm btn-editorial-secondary px-2" title="Reset all filters" aria-label="Reset all filters">
+            <i class="bi bi-x-lg"></i>
           </a>
+          {% endif %}
         </div>
       </div>
     </form>
   </div>
 
-  <!-- Curated Highlights Strip (Top-Rated & Late-Night Study Hubs) -->
-  <div class="row g-3 mb-4">
-    <!-- Top-Rated Hubs -->
-    <div class="col-lg-6">
-      <div class="surface-card p-3 h-100">
-        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
-          <div class="d-flex align-items-center gap-2">
-            <i class="bi bi-star-fill" style="color: var(--sh-rating-star); font-size: 0.9rem;"></i>
-            <span class="fw-bold small text-uppercase" style="letter-spacing: 0.04em;">Top-Rated Study Hubs</span>
-          </div>
-          <span class="small text-muted font-mono" style="font-size: 0.75rem;">By Student Reviews</span>
-        </div>
-        <div class="list-group list-group-flush">
-          {% for tr in top_rated_spots %}
-          <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 bg-transparent border-0">
-            <div class="text-truncate me-2">
-              <a href="{% url 'home:spot_detail' tr.spot_id %}" class="fw-semibold text-decoration-none text-dark d-block text-truncate small">
-                {{ tr.name }}
-              </a>
-              <span class="text-muted small" style="font-size: 0.75rem;">{{ tr.address }}</span>
-            </div>
-            <div class="text-end text-nowrap font-mono">
-              <span class="fw-bold text-dark small" style="color: var(--sh-rating-star) !important;">
-                ★ {{ tr.avg_rating }}
-              </span>
-              <span class="text-muted small" style="font-size: 0.72rem;">({{ tr.review_count }})</span>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-
-    <!-- Late-Night Hubs -->
-    <div class="col-lg-6">
-      <div class="surface-card p-3 h-100">
-        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
-          <div class="d-flex align-items-center gap-2">
-            <i class="bi bi-moon-stars" style="color: var(--sh-brand); font-size: 0.9rem;"></i>
-            <span class="fw-bold small text-uppercase" style="letter-spacing: 0.04em;">Late-Night Work Hubs</span>
-          </div>
-          <span class="small text-muted font-mono" style="font-size: 0.75rem;">Open past 10 PM</span>
-        </div>
-        <div class="list-group list-group-flush">
-          {% for ln in late_night_hubs %}
-          <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 bg-transparent border-0">
-            <div class="text-truncate me-2">
-              <a href="{% url 'home:spot_detail' ln.spot_id %}" class="fw-semibold text-decoration-none text-dark d-block text-truncate small">
-                {{ ln.name }}
-              </a>
-              <span class="text-muted small font-mono" style="font-size: 0.75rem;">
-                Closes {{ ln.closing_time|time:"g:i A" }} &bull; {{ ln.outlet_density|title }} Outlets
-              </span>
-            </div>
-            <div class="text-end text-nowrap">
-              <span class="telemetry-chip font-mono fw-bold" style="color: var(--sh-brand);">
-                {{ ln.avg_wifi_speed_mbps }} Mbps
-              </span>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Study Spot Directory Header -->
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-      <h5 class="fw-bold mb-0">Study Spot Directory</h5>
-      <span class="text-muted small">Showing {{ spots|length }} verified study locations</span>
-    </div>
-  </div>
-
-  <!-- Refined Study Spot Cards Grid -->
+  <!-- Study Spot Photo Grid (Visible Above the Fold) -->
   {% if spots %}
-  <div class="row g-3">
+  <div class="row g-4">
     {% for spot in spots %}
-    <div class="col-lg-4 col-md-6">
-      <div class="spot-card-editorial">
-        <!-- 16:9 Venue Cover Image -->
-        <div class="venue-cover-wrapper">
-          <img src="{{ spot.cover_image_url }}" alt="{{ spot.name }}" class="venue-cover-img" loading="lazy" onerror="this.onerror=null;this.src='{{ spot.cover_fallback_svg }}';">
-        </div>
-
-        <div class="p-3 d-flex flex-column flex-grow-1">
-          <!-- Card Top Bar: Eyebrow Category/Price & Status Dot & Bookmark -->
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <div class="d-flex align-items-center gap-2">
-              <!-- Category & Price Eyebrow -->
-              <span class="eyebrow-text font-mono">
-                {{ spot.category }} &bull; {{ spot.price_tier_display }}
-              </span>
-              <!-- Open/Closed Status Dot -->
-              <span class="d-inline-flex align-items-center gap-1 small text-muted" style="font-size: 0.75rem;">
-                <span class="status-dot {% if spot.is_open_now %}open{% else %}closed{% endif %}"></span>
-                {% if spot.is_open_now %}Open{% else %}Closed{% endif %}
-              </span>
-            </div>
-
-            <!-- Bookmark Button -->
-            {% if is_authenticated %}
-            <a href="{% url 'home:toggle_save' spot.id %}" class="bookmark-editorial-btn {% if spot.id in saved_spot_ids %}saved{% endif %}" title="Save spot" data-spot-id="{{ spot.id }}">
-              <i class="bi {% if spot.id in saved_spot_ids %}bi-bookmark-heart-fill{% else %}bi-bookmark-heart{% endif %}"></i>
-            </a>
-            {% endif %}
-          </div>
-
-        <!-- Spot Name (Clickable Header) -->
-        <h5 class="fw-bold mb-1" style="font-size: 1.05rem;">
-          <a href="{% url 'home:spot_detail' spot.id %}" class="text-decoration-none text-dark stretched-link">
-            {{ spot.name }}
-          </a>
-        </h5>
-
-        <!-- Spot Address -->
-        <p class="text-muted small mb-2 text-truncate" title="{{ spot.address }}">
-          <i class="bi bi-geo-alt me-1 text-secondary"></i>{{ spot.address }}
-        </p>
-
-        <!-- Hours -->
-        <div class="text-muted small font-mono mb-3" style="font-size: 0.78rem;">
-          <i class="bi bi-clock me-1"></i>
-          {% if spot.opening_time and spot.closing_time %}
-            {{ spot.opening_time|time:"g:i A" }} – {{ spot.closing_time|time:"g:i A" }}
-          {% else %}
-            Hours Unspecified
-          {% endif %}
-        </div>
-
-        <!-- Inline Metadata / Telemetry Row -->
-        <div class="d-flex flex-wrap gap-1 mb-3">
-          <span class="telemetry-chip font-mono">
-            <i class="bi bi-wifi"></i>
-            <span>{{ spot.amenities.avg_wifi_speed_mbps|default:"—" }} Mbps</span>
-          </span>
-          <span class="telemetry-chip">
-            <i class="bi bi-plug"></i>
-            <span>{{ spot.amenities.outlet_density|title|default:"Unverified" }}</span>
-          </span>
-          <span class="telemetry-chip">
-            <i class="bi bi-soundwave"></i>
-            <span>{{ spot.amenities.predominant_noise|title|default:"Moderate" }}</span>
-          </span>
-        </div>
-
-        <!-- Card Footer: Ratings & Live Presence -->
-        <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
-          <div class="d-flex align-items-center gap-1 font-mono small">
-            {% if spot.avg_rating %}
-            <span style="color: var(--sh-rating-star);"><i class="bi bi-star-fill"></i></span>
-            <span class="fw-bold text-dark">{{ spot.avg_rating }}</span>
-            <span class="text-muted" style="font-size: 0.72rem;">({{ spot.reviews_count }})</span>
-            {% else %}
-            <span class="text-muted" style="font-size: 0.75rem;">No reviews yet</span>
-            {% endif %}
-          </div>
-
-          <!-- Active Check-In Presence (Only shown if > 0) -->
-          <div>
-            {% if spot.active_checkins_count > 0 %}
-            <span class="telemetry-chip font-mono" style="border-color: var(--sh-brand-border); background-color: var(--sh-brand-surface); color: var(--sh-brand-text); font-weight: 600;">
-              <span class="live-pulse-dot"></span>
-              {{ spot.active_checkins_count }} studying
-            </span>
-            {% endif %}
-          </div>
-        </div>
-        </div>
-      </div>
-    </div>
+      {% include 'home/includes/spot_card.html' with spot=spot %}
     {% endfor %}
   </div>
   {% else %}
-  <div class="surface-card p-5 text-center rounded-3">
-    <div class="py-4">
+  <div class="surface-tonal p-5 text-center rounded-4">
+    <div class="py-5">
       <i class="bi bi-search fs-2 text-muted mb-2 d-block"></i>
-      <h5 class="fw-bold">No study spots matched your filters</h5>
-      <p class="text-editorial-subhead small mb-3">Try adjusting your search criteria, noise preference, or Wi-Fi threshold.</p>
-      <a href="{% url 'home:home' %}" class="btn btn-editorial-primary btn-sm px-4">
-        Reset All Filters
+      <h5 class="fw-bold text-dark">No study spaces match your active filters</h5>
+      <p class="text-muted small mb-3">Try clearing some criteria or expanding your Wi-Fi and noise preferences.</p>
+      <a href="{% url 'home:home' %}" class="btn btn-brand btn-sm px-4">
+        Reset Filters
       </a>
     </div>
   </div>
