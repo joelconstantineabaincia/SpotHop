@@ -17,6 +17,9 @@
   <div class="row g-4 align-items-start">
     <!-- Main Content (Left, 8 cols) -->
     <div class="col-lg-8">
+      <!-- Sleek Venue Cover Banner -->
+      <img src="{{ spot.cover_image_url }}" alt="{{ spot.name }}" class="venue-detail-banner shadow-sm" onerror="this.onerror=null;this.src='{{ spot.cover_fallback_svg }}';">
+
       <!-- Spot Header Card -->
       <div class="card card-editorial p-4 mb-4">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">

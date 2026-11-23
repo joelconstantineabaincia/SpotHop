@@ -143,8 +143,14 @@ def spot_detail_view(request, spot_id):
     # Reviews ordered by newest first
     reviews = Review.objects.filter(spot=spot).select_related('user').order_by('-id')
 
-    # Active check-ins at this spot
-    active_checkins = CheckIn.objects.filter(spot=spot, is_active=True).select_related('user').order_by('-checked_in_at')
+    # Active check-ins at this spot (deduplicated by student user to show latest per person)
+    raw_checkins = CheckIn.objects.filter(spot=spot, is_active=True).select_related('user').order_by('-checked_in_at')
+    seen_user_ids = set()
+    active_checkins = []
+    for ci in raw_checkins:
+        if ci.user_id not in seen_user_ids:
+            seen_user_ids.add(ci.user_id)
+            active_checkins.append(ci)
 
     # Check if current user is saved or checked in
     is_saved = False
