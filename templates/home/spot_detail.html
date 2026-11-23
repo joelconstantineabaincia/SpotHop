@@ -1,322 +1,149 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ spot.name }} - SpotHop Study Spots{% endblock %}
+{% block title %}{{ spot.name }} — SpotHop Cebu{% endblock %}
 
 {% block content %}
 <div class="container py-4">
   <!-- Breadcrumbs -->
   <nav aria-label="breadcrumb" class="mb-3">
-    <ol class="breadcrumb small">
-      <li class="breadcrumb-item"><a href="{% url 'home:home' %}" class="text-decoration-none text-success">Home</a></li>
+    <ol class="breadcrumb small mb-0 text-muted">
+      <li class="breadcrumb-item"><a href="{% url 'home:home' %}" class="text-decoration-none text-muted">Directory</a></li>
       <li class="breadcrumb-item"><a href="{% url 'home:home' %}?category={{ spot.category }}" class="text-decoration-none text-muted">{{ spot.get_category_display|default:spot.category }}</a></li>
-      <li class="breadcrumb-item active" aria-current="page">{{ spot.name }}</li>
+      <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">{{ spot.name }}</li>
     </ol>
   </nav>
 
-  <!-- Spot Header Banner -->
-  <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-body">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
-      <div>
-        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-          <span class="badge bg-secondary-subtle text-dark border small fw-semibold text-uppercase">
-            {% if spot.category == 'CAFE' %}<i class="bi bi-cup-hot text-warning me-1"></i>Café
-            {% elif spot.category == 'LIBRARY' %}<i class="bi bi-book text-primary me-1"></i>Library
-            {% elif spot.category == 'COWORKING' %}<i class="bi bi-laptop text-info me-1"></i>Co-working
-            {% else %}<i class="bi bi-building text-secondary me-1"></i>Lounge{% endif %}
-          </span>
+  <div class="row g-4 align-items-start">
+    <!-- Main Content (Left, 8 cols) -->
+    <div class="col-lg-8">
+      <!-- Spot Header Card -->
+      <div class="card card-editorial p-4 mb-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+          <div class="d-flex align-items-center gap-2">
+            <span class="spot-card-eyebrow mb-0">
+              {% if spot.category == 'CAFE' %}<i class="bi bi-cup-hot me-1"></i>Café
+              {% elif spot.category == 'LIBRARY' %}<i class="bi bi-book me-1"></i>Library
+              {% elif spot.category == 'COWORKING' %}<i class="bi bi-laptop me-1"></i>Co-Working
+              {% else %}<i class="bi bi-building me-1"></i>Study Lounge{% endif %}
+            </span>
+            <span class="text-muted">&bull;</span>
+            <span class="font-mono text-muted small fw-semibold">{{ spot.price_tier_display }}</span>
+          </div>
 
-          {% if spot.is_open_now %}
-          <span class="badge badge-open rounded-pill px-3 py-1 fw-semibold">
-            <i class="bi bi-clock-fill me-1"></i>Open Now
-          </span>
-          {% else %}
-          <span class="badge badge-closed rounded-pill px-3 py-1 fw-semibold">
-            <i class="bi bi-moon me-1"></i>Currently Closed
-          </span>
-          {% endif %}
-
-          <span class="badge bg-light text-dark border fw-bold">
-            {{ spot.price_tier_display }}
-          </span>
+          <div class="d-flex align-items-center gap-2">
+            {% if spot.is_open_now %}
+            <span class="badge-status-open">
+              <span class="pulse-dot pulse-dot-active me-1"></span> Open Now
+            </span>
+            {% else %}
+            <span class="badge-status-closed">
+              <span class="pulse-dot me-1"></span> Closed
+            </span>
+            {% endif %}
+          </div>
         </div>
 
-        <h1 class="display-6 fw-bold mb-2">{{ spot.name }}</h1>
-        <p class="text-muted mb-2 fs-6">
-          <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ spot.address }}
-        </p>
+        <h1 class="h2 fw-bold text-dark mb-2">{{ spot.name }}</h1>
 
-        <div class="d-flex flex-wrap align-items-center gap-3 small text-muted">
+        <div class="d-flex flex-wrap align-items-center gap-3 text-muted small mb-3">
           <div>
-            <i class="bi bi-clock me-1 text-primary"></i>
-            {% if spot.opening_time and spot.closing_time %}
-              {{ spot.opening_time|time:"g:i A" }} – {{ spot.closing_time|time:"g:i A" }}
-            {% else %}
-              Operating hours unspecified
-            {% endif %}
+            <i class="bi bi-geo-alt me-1 text-secondary"></i>{{ spot.address }}
           </div>
           <div>&bull;</div>
           <div>
-            <a href="https://maps.google.com/?q={{ spot.latitude }},{{ spot.longitude }}" target="_blank" class="text-decoration-none text-success fw-semibold">
-              <i class="bi bi-map-fill me-1"></i> View on Google Maps ({{ spot.latitude }}, {{ spot.longitude }})
+            <a href="https://maps.google.com/?q={{ spot.latitude }},{{ spot.longitude }}" target="_blank" class="text-decoration-none text-dark fw-medium">
+              <i class="bi bi-compass me-1"></i>Google Maps ({{ spot.latitude }}, {{ spot.longitude }})
             </a>
           </div>
         </div>
-      </div>
 
-      <!-- Action Buttons -->
-      <div class="d-flex align-items-center gap-2 align-self-md-center">
-        {% if is_authenticated %}
-        <a href="{% url 'home:toggle_save' spot.id %}" class="btn {% if is_saved %}btn-danger text-white{% else %}btn-outline-danger{% endif %} rounded-pill px-4">
-          <i class="bi {% if is_saved %}bi-bookmark-heart-fill{% else %}bi-bookmark-heart{% endif %} me-1"></i>
-          {% if is_saved %}Saved{% else %}Save Spot{% endif %}
-        </a>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-
-  <div class="row g-4">
-    <!-- Left Column: Verified Amenities & Live Presence -->
-    <div class="col-lg-5">
-      <!-- Live Presence & Check-In Card -->
-      <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-body">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h5 class="fw-bold mb-0">
-            <i class="bi bi-people-fill text-primary me-2"></i>Live Presence
-          </h5>
-          <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 fw-bold fs-6">
-            {{ active_checkins|length }} Active
-          </span>
-        </div>
-
-        <p class="text-muted small mb-3">
-          See who is currently studying here right now. Check in to share your presence with fellow classmates!
-        </p>
-
-        <!-- Check-in Toggle Button -->
-        {% if is_authenticated %}
-        <form method="post" action="{% url 'home:toggle_checkin' spot.id %}" class="mb-3">
-          {% csrf_token %}
-          {% if is_user_checked_in_here %}
-          <button type="submit" class="btn btn-danger w-100 rounded-pill py-2 fw-semibold">
-            <i class="bi bi-box-arrow-left me-1"></i> Check Out of this Spot
-          </button>
-          <small class="text-success d-block text-center mt-2 fw-semibold">
-            <i class="bi bi-check-circle-fill me-1"></i> You are currently studying here!
-          </small>
-          {% elif user_active_checkin_elsewhere %}
-          <button type="submit" class="btn btn-warning w-100 rounded-pill py-2 fw-semibold">
-            <i class="bi bi-arrow-repeat me-1"></i> Switch Check-In to Here (Currently at {{ user_active_checkin_elsewhere.spot.name }})
-          </button>
-          {% else %}
-          <button type="submit" class="btn btn-spothop w-100 rounded-pill py-2 fw-semibold">
-            <i class="bi bi-geo-fill me-1"></i> Check In to {{ spot.name }}
-          </button>
-          {% endif %}
-        </form>
-        {% else %}
-        <div class="alert alert-info py-2 small mb-3">
-          <a href="{% url 'login:login' %}" class="fw-bold text-decoration-none">Log in</a> to check in and let classmates know you're studying here.
-        </div>
-        {% endif %}
-
-        <!-- List of Active Checked-In Users -->
-        <h6 class="fw-bold text-uppercase small text-muted mb-2">Currently Studying Here</h6>
-        {% if active_checkins %}
-        <ul class="list-group list-group-flush small">
-          {% for checkin in active_checkins %}
-          <li class="list-group-item d-flex justify-content-between align-items-center px-0 bg-transparent py-2">
-            <div class="d-flex align-items-center gap-2">
-              <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-size: 0.75rem; font-weight: bold;">
-                {{ checkin.user.username|slice:":1"|upper }}
-              </div>
-              <div>
-                <span class="fw-bold">{{ checkin.user.full_name|default:checkin.user.username }}</span>
-                <span class="text-muted">(@{{ checkin.user.username }})</span>
-              </div>
-            </div>
-            <span class="text-muted"><i class="bi bi-clock me-1"></i>{{ checkin.checked_in_at|timesince }} ago</span>
-          </li>
-          {% endfor %}
-        </ul>
-        {% else %}
-        <div class="text-center py-3 text-muted small">
-          <i class="bi bi-person-x fs-3 d-block mb-1"></i>
-          No one is checked in at this moment. Be the first student to check in!
-        </div>
-        {% endif %}
-      </div>
-
-      <!-- Verified Amenities Card -->
-      <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-body">
-        <h5 class="fw-bold mb-3">
-          <i class="bi bi-shield-check text-success me-2"></i>Verified Spot Amenities
-        </h5>
-        
-        <div class="list-group list-group-flush mb-3">
-          <!-- Wi-Fi -->
-          <div class="list-group-item d-flex justify-content-between align-items-center px-0 bg-transparent py-3 border-bottom">
-            <div class="d-flex align-items-center gap-3">
-              <div class="rounded-3 p-2 bg-success-subtle text-success fs-4">
-                <i class="bi bi-wifi"></i>
-              </div>
-              <div>
-                <div class="fw-bold">Average Wi-Fi Speed</div>
-                <small class="text-muted">Crowd-tested download speed</small>
-              </div>
-            </div>
-            <span class="fs-5 fw-bold text-success">
-              {{ spot.amenities.avg_wifi_speed_mbps|default:"—" }} <small class="fs-6 text-muted">Mbps</small>
+        <div class="p-3 bg-stone rounded-3 d-flex flex-wrap align-items-center justify-content-between gap-3 text-muted small">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-clock text-secondary"></i>
+            <span>Operating Hours:</span>
+            <span class="font-mono text-dark fw-semibold">
+              {% if spot.opening_time and spot.closing_time %}
+                {{ spot.opening_time|time:"g:i A" }} – {{ spot.closing_time|time:"g:i A" }}
+              {% else %}
+                Hours Unspecified
+              {% endif %}
             </span>
+          </div>
+          {% if spot.avg_rating %}
+          <div class="d-flex align-items-center gap-1 font-mono">
+            <i class="bi bi-star-fill text-warning"></i>
+            <span class="fw-bold text-dark">{{ spot.avg_rating }}</span>
+            <span class="text-muted small">({{ reviews|length }} reviews)</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Verified Amenity Telemetry Grid -->
+      <div class="card card-editorial p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h5 class="fw-bold text-dark mb-1">Verified Telemetry</h5>
+            <p class="text-muted small mb-0">Aggregated from verified student speed tests and reviews</p>
+          </div>
+          {% if spot.amenities.last_recalculated_at %}
+          <span class="text-muted font-mono" style="font-size: 0.72rem;">
+            Updated {{ spot.amenities.last_recalculated_at|date:"M d, H:i" }}
+          </span>
+          {% endif %}
+        </div>
+
+        <div class="row g-3">
+          <!-- Wi-Fi -->
+          <div class="col-sm-4">
+            <div class="p-3 border rounded-3 text-center bg-white h-100">
+              <div class="text-muted small mb-1"><i class="bi bi-wifi me-1 text-success"></i>Avg Wi-Fi</div>
+              <div class="font-mono fs-4 fw-bold text-dark">
+                {{ spot.amenities.avg_wifi_speed_mbps|default:"—" }}
+              </div>
+              <div class="text-muted font-mono" style="font-size: 0.72rem;">Mbps Download</div>
+            </div>
           </div>
 
           <!-- Outlets -->
-          <div class="list-group-item d-flex justify-content-between align-items-center px-0 bg-transparent py-3 border-bottom">
-            <div class="d-flex align-items-center gap-3">
-              <div class="rounded-3 p-2 bg-primary-subtle text-primary fs-4">
-                <i class="bi bi-plug-fill"></i>
+          <div class="col-sm-4">
+            <div class="p-3 border rounded-3 text-center bg-white h-100">
+              <div class="text-muted small mb-1"><i class="bi bi-plug me-1 text-primary"></i>Power Outlets</div>
+              <div class="fw-bold text-dark fs-5 mt-1">
+                {{ spot.amenities.outlet_density|title|default:"Unverified" }}
               </div>
-              <div>
-                <div class="fw-bold">Power Outlets</div>
-                <small class="text-muted">Availability near tables</small>
-              </div>
+              <div class="text-muted" style="font-size: 0.72rem;">Desk Availability</div>
             </div>
-            <span class="badge bg-primary-subtle text-primary fs-6 px-3 py-2 rounded-pill fw-bold">
-              {{ spot.amenities.outlet_density|title|default:"Unverified" }}
-            </span>
           </div>
 
           <!-- Noise -->
-          <div class="list-group-item d-flex justify-content-between align-items-center px-0 bg-transparent py-3 border-bottom">
-            <div class="d-flex align-items-center gap-3">
-              <div class="rounded-3 p-2 bg-warning-subtle text-warning fs-4">
-                <i class="bi bi-volume-up-fill"></i>
+          <div class="col-sm-4">
+            <div class="p-3 border rounded-3 text-center bg-white h-100">
+              <div class="text-muted small mb-1"><i class="bi bi-volume-up me-1 text-warning"></i>Ambient Noise</div>
+              <div class="fw-bold text-dark fs-5 mt-1">
+                {{ spot.amenities.predominant_noise|title|default:"Moderate" }}
               </div>
-              <div>
-                <div class="fw-bold">Noise Environment</div>
-                <small class="text-muted">Typical ambient noise</small>
-              </div>
+              <div class="text-muted" style="font-size: 0.72rem;">Sound Environment</div>
             </div>
-            <span class="badge bg-warning-subtle text-warning fs-6 px-3 py-2 rounded-pill fw-bold">
-              {{ spot.amenities.predominant_noise|title|default:"Moderate" }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Crowd-Sourced Reviews Feed -->
+      <div class="card card-editorial p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="d-flex align-items-center gap-2">
+            <h5 class="fw-bold text-dark mb-0">Student Reviews & Speed Tests</h5>
+            <span class="badge bg-secondary-subtle text-dark font-mono rounded-pill px-2 py-0" style="font-size: 0.75rem;">
+              {{ reviews|length }}
             </span>
           </div>
-        </div>
-
-        <small class="text-muted">
-          <i class="bi bi-arrow-clockwise me-1"></i> Last recalculated: {{ spot.amenities.last_recalculated_at|date:"M d, Y H:i" }}
-        </small>
-      </div>
-    </div>
-
-    <!-- Right Column: Crowd-Sourced Reviews & Speed-Test Logger -->
-    <div class="col-lg-7">
-      <!-- Add / Edit Review Card -->
-      <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-body">
-        <h5 class="fw-bold mb-2">
-          <i class="bi bi-speedometer text-success me-2"></i>
-          {% if user_review %}Edit Your Speed-Test & Review{% else %}Log a Speed-Test & Review{% endif %}
-        </h5>
-        <p class="text-muted small mb-3">
-          Share your real Wi-Fi speed readings and study experience to update the crowd-sourced amenity data.
-        </p>
-
-        {% if is_authenticated %}
-        <form method="post" action="{% url 'home:add_review' spot.id %}">
-          {% csrf_token %}
-          <div class="row g-3">
-            <!-- Overall Rating -->
-            <div class="col-md-4">
-              <label class="form-label small fw-semibold">Overall Rating (1–5) *</label>
-              <select name="overall_rating" class="form-select" required>
-                <option value="5" {% if user_review.overall_rating == 5 %}selected{% endif %}>⭐⭐⭐⭐⭐ (5 - Outstanding)</option>
-                <option value="4" {% if user_review.overall_rating == 4 or not user_review %}selected{% endif %}>⭐⭐⭐⭐ (4 - Very Good)</option>
-                <option value="3" {% if user_review.overall_rating == 3 %}selected{% endif %}>⭐⭐⭐ (3 - Average)</option>
-                <option value="2" {% if user_review.overall_rating == 2 %}selected{% endif %}>⭐⭐ (2 - Below Average)</option>
-                <option value="1" {% if user_review.overall_rating == 1 %}selected{% endif %}>⭐ (1 - Poor)</option>
-              </select>
-            </div>
-
-            <!-- Outlet Rating -->
-            <div class="col-md-4">
-              <label class="form-label small fw-semibold">Power Outlets *</label>
-              <select name="outlet_rating" class="form-select">
-                <option value="PLENTIFUL" {% if user_review.outlet_rating == 'PLENTIFUL' or not user_review %}selected{% endif %}>Plentiful</option>
-                <option value="SCARCE" {% if user_review.outlet_rating == 'SCARCE' %}selected{% endif %}>Scarce</option>
-                <option value="NONE" {% if user_review.outlet_rating == 'NONE' %}selected{% endif %}>None</option>
-              </select>
-            </div>
-
-            <!-- Noise Level -->
-            <div class="col-md-4">
-              <label class="form-label small fw-semibold">Noise Level *</label>
-              <select name="noise_level" class="form-select">
-                <option value="SILENT" {% if user_review.noise_level == 'SILENT' %}selected{% endif %}>Silent</option>
-                <option value="QUIET" {% if user_review.noise_level == 'QUIET' or not user_review %}selected{% endif %}>Quiet</option>
-                <option value="MODERATE" {% if user_review.noise_level == 'MODERATE' %}selected{% endif %}>Moderate</option>
-                <option value="LOUD" {% if user_review.noise_level == 'LOUD' %}selected{% endif %}>Loud</option>
-              </select>
-            </div>
-
-            <!-- Download Speed -->
-            <div class="col-md-6">
-              <label class="form-label small fw-semibold">Download Speed (Mbps)</label>
-              <div class="input-group">
-                <input type="number" step="0.01" name="download_speed_mbps" class="form-control" placeholder="e.g. 75.50" value="{{ user_review.download_speed_mbps|default:'' }}">
-                <span class="input-group-text">Mbps</span>
-              </div>
-            </div>
-
-            <!-- Upload Speed -->
-            <div class="col-md-6">
-              <label class="form-label small fw-semibold">Upload Speed (Mbps)</label>
-              <div class="input-group">
-                <input type="number" step="0.01" name="upload_speed_mbps" class="form-control" placeholder="e.g. 35.00" value="{{ user_review.upload_speed_mbps|default:'' }}">
-                <span class="input-group-text">Mbps</span>
-              </div>
-            </div>
-
-            <!-- Review Text -->
-            <div class="col-12">
-              <label class="form-label small fw-semibold">Your Review / Tips for Students</label>
-              <textarea name="review_text" rows="3" class="form-control" placeholder="Tell other students about the vibe, coffee quality, peak hours, or table arrangements...">{{ user_review.review_text|default:'' }}</textarea>
-            </div>
-
-            <div class="col-12 d-flex justify-content-between align-items-center">
-              <div>
-                {% if user_review %}
-                <a href="{% url 'home:delete_review' user_review.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete your review?')">
-                  <i class="bi bi-trash me-1"></i> Delete Review
-                </a>
-                {% endif %}
-              </div>
-              <button type="submit" class="btn btn-spothop rounded-pill px-4">
-                {% if user_review %}Update Review{% else %}Submit Review & Speed-Test{% endif %}
-              </button>
-            </div>
-          </div>
-        </form>
-        {% else %}
-        <div class="alert alert-secondary py-3 text-center">
-          <p class="mb-2">You must be logged in to leave a review and log speed tests.</p>
-          <a href="{% url 'login:login' %}" class="btn btn-sm btn-spothop rounded-pill px-4">Log In to Review</a>
-        </div>
-        {% endif %}
-      </div>
-
-      <!-- Reviews Feed -->
-      <div class="card border-0 shadow-sm rounded-4 p-4 bg-body">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h5 class="fw-bold mb-0">
-            <i class="bi bi-chat-square-quote-fill text-success me-2"></i>Crowd-Sourced Reviews
-            <span class="badge bg-secondary rounded-pill fs-6 ms-2">{{ reviews|length }}</span>
-          </h5>
           {% if spot.avg_rating %}
-          <div class="d-flex align-items-center gap-1 fs-5">
-            <span class="rating-star"><i class="bi bi-star-fill"></i></span>
-            <span class="fw-bold">{{ spot.avg_rating }}</span>
-            <small class="text-muted fs-6">/ 5</small>
+          <div class="d-flex align-items-center gap-1 font-mono text-dark fw-bold">
+            <i class="bi bi-star-fill text-warning"></i>
+            <span>{{ spot.avg_rating }}</span>
+            <span class="text-muted fw-normal small">/ 5.0</span>
           </div>
           {% endif %}
         </div>
@@ -324,64 +151,64 @@
         {% if reviews %}
         <div class="d-flex flex-column gap-3">
           {% for rev in reviews %}
-          <div class="p-3 rounded-3 border bg-body-tertiary">
-            <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="p-3 rounded-3 border bg-white">
+            <div class="d-flex justify-content-between align-items-start mb-2">
               <div class="d-flex align-items-center gap-2">
-                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center font-mono" style="width: 32px; height: 32px; font-size: 0.8rem; font-weight: 600;">
                   {{ rev.user.username|slice:":1"|upper }}
                 </div>
                 <div>
-                  <div class="fw-bold small">{{ rev.user.full_name|default:rev.user.username }}</div>
-                  <div class="text-muted" style="font-size: 0.75rem;">@{{ rev.user.username }}</div>
+                  <div class="fw-bold small text-dark">{{ rev.user.full_name|default:rev.user.username }}</div>
+                  <div class="text-muted font-mono" style="font-size: 0.72rem;">@{{ rev.user.username }}</div>
                 </div>
               </div>
 
               <!-- Rating Stars -->
-              <div class="rating-star small">
+              <div class="d-flex align-items-center gap-1 font-mono small">
                 {% for i in "12345" %}
                   {% if forloop.counter <= rev.overall_rating %}
-                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill text-warning"></i>
                   {% else %}
-                    <i class="bi bi-star"></i>
+                    <i class="bi bi-star text-muted"></i>
                   {% endif %}
                 {% endfor %}
               </div>
             </div>
 
-            <!-- Speed & Amenities Tag in Review -->
-            <div class="d-flex flex-wrap gap-2 mb-2">
+            <!-- Telemetry Badges -->
+            <div class="d-flex flex-wrap gap-2 mb-2 font-mono">
               {% if rev.download_speed_mbps %}
-              <span class="badge bg-success-subtle text-success border border-success-subtle small">
-                <i class="bi bi-arrow-down me-1"></i>{{ rev.download_speed_mbps }} Mbps
+              <span class="telemetry-chip">
+                <i class="bi bi-arrow-down text-success"></i>{{ rev.download_speed_mbps }} Mbps
               </span>
               {% endif %}
               {% if rev.upload_speed_mbps %}
-              <span class="badge bg-primary-subtle text-primary border border-primary-subtle small">
-                <i class="bi bi-arrow-up me-1"></i>{{ rev.upload_speed_mbps }} Mbps
+              <span class="telemetry-chip">
+                <i class="bi bi-arrow-up text-primary"></i>{{ rev.upload_speed_mbps }} Mbps
               </span>
               {% endif %}
               {% if rev.outlet_rating %}
-              <span class="badge bg-info-subtle text-dark border small">
-                <i class="bi bi-plug me-1"></i>{{ rev.outlet_rating|title }} Outlets
+              <span class="telemetry-chip">
+                <i class="bi bi-plug"></i>{{ rev.outlet_rating|title }} Outlets
               </span>
               {% endif %}
               {% if rev.noise_level %}
-              <span class="badge bg-warning-subtle text-dark border small">
-                <i class="bi bi-soundwave me-1"></i>{{ rev.noise_level|title }} Noise
+              <span class="telemetry-chip">
+                <i class="bi bi-soundwave"></i>{{ rev.noise_level|title }} Noise
               </span>
               {% endif %}
             </div>
 
             <!-- Review text -->
             {% if rev.review_text %}
-            <p class="mb-1 small">{{ rev.review_text }}</p>
+            <p class="mb-0 small text-secondary">{{ rev.review_text }}</p>
             {% endif %}
 
             <!-- Author actions -->
             {% if is_authenticated and current_user.id == rev.user.id %}
-            <div class="text-end mt-2">
+            <div class="text-end mt-2 pt-2 border-top">
               <a href="{% url 'home:delete_review' rev.id %}" class="text-danger text-decoration-none small" onclick="return confirm('Delete this review?')">
-                <i class="bi bi-trash"></i> Delete
+                <i class="bi bi-trash me-1"></i>Delete Review
               </a>
             </div>
             {% endif %}
@@ -389,11 +216,161 @@
           {% endfor %}
         </div>
         {% else %}
-        <div class="text-center py-4 text-muted">
-          <i class="bi bi-chat-dots fs-2 d-block mb-2"></i>
-          No reviews yet. Be the first to review and test the Wi-Fi at {{ spot.name }}!
+        <div class="text-center py-4 text-muted small">
+          <i class="bi bi-chat-square-dots fs-3 d-block mb-2 text-secondary opacity-50"></i>
+          No student reviews recorded yet. Submit the first speed-test using the form on the right.
         </div>
         {% endif %}
+      </div>
+    </div>
+
+    <!-- Sidebar (Right, 4 cols, Sticky) -->
+    <div class="col-lg-4">
+      <div class="sticky-top" style="top: 1.5rem; z-index: 10;">
+        <!-- Live Presence & Action Card -->
+        <div class="card card-editorial p-4 mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex align-items-center gap-2">
+              <span class="pulse-dot {% if active_checkins %}pulse-dot-active{% endif %}"></span>
+              <h6 class="fw-bold text-dark mb-0">Live Presence</h6>
+            </div>
+            <span class="badge bg-secondary-subtle text-dark font-mono rounded-pill px-2 py-1" style="font-size: 0.75rem;">
+              {{ active_checkins|length }} Active
+            </span>
+          </div>
+
+          <p class="text-muted small mb-3">
+            Check in when studying here so classmates can see real-time space occupancy.
+          </p>
+
+          <!-- Check-in Action -->
+          {% if is_authenticated %}
+          <form method="post" action="{% url 'home:toggle_checkin' spot.id %}" class="mb-3">
+            {% csrf_token %}
+            {% if is_user_checked_in_here %}
+            <button type="submit" class="btn btn-outline-danger w-100 rounded-3 py-2 fw-semibold">
+              <i class="bi bi-box-arrow-left me-1"></i>Check Out
+            </button>
+            <div class="text-success text-center mt-2 small fw-semibold">
+              <i class="bi bi-check-circle-fill me-1"></i>You are checked in here!
+            </div>
+            {% elif user_active_checkin_elsewhere %}
+            <button type="submit" class="btn btn-outline-warning text-dark w-100 rounded-3 py-2 fw-semibold">
+              <i class="bi bi-arrow-repeat me-1"></i>Switch Here (from {{ user_active_checkin_elsewhere.spot.name }})
+            </button>
+            {% else %}
+            <button type="submit" class="btn btn-dark w-100 rounded-3 py-2 fw-semibold">
+              <i class="bi bi-geo-alt-fill me-1"></i>Check In Here
+            </button>
+            {% endif %}
+          </form>
+
+          <!-- Save Spot Toggle -->
+          <a href="{% url 'home:toggle_save' spot.id %}" class="btn {% if is_saved %}btn-outline-danger{% else %}btn-outline-secondary{% endif %} w-100 rounded-3 py-2 fw-semibold mb-3">
+            <i class="bi {% if is_saved %}bi-bookmark-fill text-danger{% else %}bi-bookmark{% endif %} me-1"></i>
+            {% if is_saved %}Saved to Bookmarks{% else %}Bookmark Space{% endif %}
+          </a>
+          {% else %}
+          <div class="p-3 bg-stone rounded-3 text-center mb-3">
+            <p class="text-muted small mb-2">Log in to check in and bookmark spaces.</p>
+            <a href="{% url 'login:login' %}" class="btn btn-dark btn-sm rounded-3 px-3">Log In</a>
+          </div>
+          {% endif %}
+
+          <!-- Currently Checked-in Users List -->
+          <div class="border-top pt-3">
+            <h6 class="spot-card-eyebrow mb-2">Studying Here Now</h6>
+            {% if active_checkins %}
+            <div class="d-flex flex-column gap-2">
+              {% for checkin in active_checkins %}
+              <div class="d-flex justify-content-between align-items-center py-1">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="rounded-circle bg-secondary-subtle text-dark d-flex align-items-center justify-content-center font-mono" style="width: 26px; height: 26px; font-size: 0.7rem; font-weight: 600;">
+                    {{ checkin.user.username|slice:":1"|upper }}
+                  </div>
+                  <span class="small fw-medium text-dark">{{ checkin.user.full_name|default:checkin.user.username }}</span>
+                </div>
+                <span class="font-mono text-muted" style="font-size: 0.72rem;">{{ checkin.checked_in_at|timesince }}</span>
+              </div>
+              {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted small mb-0">No active check-ins right now.</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Log Review / Speed Test Card -->
+        <div class="card card-editorial p-4">
+          <h6 class="fw-bold text-dark mb-1">
+            {% if user_review %}Edit Speed Test & Review{% else %}Log Speed Test & Review{% endif %}
+          </h6>
+          <p class="text-muted small mb-3">Submit your telemetry to update verified metrics.</p>
+
+          {% if is_authenticated %}
+          <form method="post" action="{% url 'home:add_review' spot.id %}">
+            {% csrf_token %}
+            <div class="row g-2 mb-2">
+              <!-- Rating -->
+              <div class="col-12">
+                <label class="form-label small fw-semibold text-dark mb-1">Overall Rating (1–5)</label>
+                <select name="overall_rating" class="form-select form-select-sm" required>
+                  <option value="5" {% if user_review.overall_rating == 5 %}selected{% endif %}>5 — Outstanding</option>
+                  <option value="4" {% if user_review.overall_rating == 4 or not user_review %}selected{% endif %}>4 — Very Good</option>
+                  <option value="3" {% if user_review.overall_rating == 3 %}selected{% endif %}>3 — Average</option>
+                  <option value="2" {% if user_review.overall_rating == 2 %}selected{% endif %}>2 — Below Average</option>
+                  <option value="1" {% if user_review.overall_rating == 1 %}selected{% endif %}>1 — Poor</option>
+                </select>
+              </div>
+
+              <!-- Outlets -->
+              <div class="col-6">
+                <label class="form-label small fw-semibold text-dark mb-1">Outlets</label>
+                <select name="outlet_rating" class="form-select form-select-sm">
+                  <option value="PLENTIFUL" {% if user_review.outlet_rating == 'PLENTIFUL' or not user_review %}selected{% endif %}>Plentiful</option>
+                  <option value="SCARCE" {% if user_review.outlet_rating == 'SCARCE' %}selected{% endif %}>Scarce</option>
+                  <option value="NONE" {% if user_review.outlet_rating == 'NONE' %}selected{% endif %}>None</option>
+                </select>
+              </div>
+
+              <!-- Noise -->
+              <div class="col-6">
+                <label class="form-label small fw-semibold text-dark mb-1">Noise</label>
+                <select name="noise_level" class="form-select form-select-sm">
+                  <option value="SILENT" {% if user_review.noise_level == 'SILENT' %}selected{% endif %}>Silent</option>
+                  <option value="QUIET" {% if user_review.noise_level == 'QUIET' or not user_review %}selected{% endif %}>Quiet</option>
+                  <option value="MODERATE" {% if user_review.noise_level == 'MODERATE' %}selected{% endif %}>Moderate</option>
+                  <option value="LOUD" {% if user_review.noise_level == 'LOUD' %}selected{% endif %}>Loud</option>
+                </select>
+              </div>
+
+              <!-- Download Speed -->
+              <div class="col-6">
+                <label class="form-label small fw-semibold text-dark mb-1">Download (Mbps)</label>
+                <input type="number" step="0.01" name="download_speed_mbps" class="form-control form-control-sm font-mono" placeholder="75.5" value="{{ user_review.download_speed_mbps|default:'' }}">
+              </div>
+
+              <!-- Upload Speed -->
+              <div class="col-6">
+                <label class="form-label small fw-semibold text-dark mb-1">Upload (Mbps)</label>
+                <input type="number" step="0.01" name="upload_speed_mbps" class="form-control form-control-sm font-mono" placeholder="35.0" value="{{ user_review.upload_speed_mbps|default:'' }}">
+              </div>
+
+              <!-- Review Text -->
+              <div class="col-12">
+                <label class="form-label small fw-semibold text-dark mb-1">Review & Student Tips</label>
+                <textarea name="review_text" rows="3" class="form-control form-control-sm" placeholder="Vibe, seating comfort, coffee quality, peak hours...">{{ user_review.review_text|default:'' }}</textarea>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-brand w-100 rounded-3 py-2 fw-semibold">
+              {% if user_review %}Update Review{% else %}Submit Review{% endif %}
+            </button>
+          </form>
+          {% else %}
+          <p class="text-muted small mb-0 text-center">Log in to record speed tests and reviews.</p>
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>
