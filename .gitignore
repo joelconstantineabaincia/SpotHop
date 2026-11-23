@@ -1,6 +1,29 @@
+# Environment & Secrets
 .env
+.env.*
+
+# Virtual Environments
 .venv/
 venv/
+env/
+
+# Python & Django Artifacts
 __pycache__/
-*.pyc
+*.py[cod]
+*.sqlite3
 db.sqlite3
+staticfiles/
+*.log
+
+# OS & Editor Clutter
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# CSIT327 Monitoring Evidence Artifacts (Keep untracked from source repo)
+BASELINE_COMMIT.txt
+ABAINCIA_FINAL_PROJECT/
+*_EVIDENCE.zip
+TEAMS_SUBMISSION.txt
+
