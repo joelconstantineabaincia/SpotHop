@@ -21,9 +21,12 @@ Thumbs.db
 .vscode/
 .idea/
 
+
+skills-lock.json
+
 # CSIT327 Monitoring Evidence Artifacts (Keep untracked from source repo)
 BASELINE_COMMIT.txt
 ABAINCIA_FINAL_PROJECT/
 *_EVIDENCE.zip
 TEAMS_SUBMISSION.txt
-
+.agents
