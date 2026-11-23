@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Database Query Insights (SQL JOIN & SUBQUERY) — SpotHop{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-md-5">
+
+  <!-- Breadcrumb & Back Link -->
+  <div class="mb-3">
+    <a href="{% url 'home:home' %}" class="text-decoration-none text-muted small d-inline-flex align-items-center gap-1">
+      <i class="bi bi-arrow-left"></i>
+      <span>Back to SpotHop Directory</span>
+    </a>
+  </div>
+
+  <!-- Page Header -->
+  <header class="mb-5 pb-3 border-bottom" style="border-color: var(--sh-border) !important;">
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+      <span class="badge rounded-pill text-uppercase px-3 py-1 fw-semibold" style="background-color: var(--sh-brand-surface); color: var(--sh-brand-text); border: 1px solid var(--sh-brand-border); letter-spacing: 0.08em; font-size: 0.72rem;">
+        SUPABASE POSTGRESQL · DJANGO ORM
+      </span>
+      <span class="badge rounded-pill bg-body-secondary text-secondary px-3 py-1 fw-medium" style="font-size: 0.72rem;">
+        CSIT327 Lab Activity
+      </span>
+    </div>
+    <h1 class="h2 fw-bold tracking-tight mb-2" style="font-family: var(--sh-font-sans); color: var(--sh-text);">
+      Database Query Insights <span class="fw-normal text-muted fs-4">(SQL JOIN &amp; SUBQUERY)</span>
+    </h1>
+    <p class="text-secondary mb-0" style="max-width: 860px; font-size: 0.95rem; line-height: 1.6;">
+      Live records fetched directly from our Supabase PostgreSQL production database using Django ORM. This screen displays both compiled SQL operations alongside their resulting datasets for academic demonstration and query inspection.
+    </p>
+  </header>
+
+  <!-- ============================================================== -->
+  <!-- SECTION 1: SQL JOIN (select_related)                          -->
+  <!-- ============================================================== -->
+  <section class="mb-5 pb-4 border-bottom" style="border-color: var(--sh-border) !important;" id="sql-join-section">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 28px; height: 28px; background-color: var(--sh-brand); font-size: 0.85rem;">
+            <i class="bi bi-intersect"></i>
+          </div>
+          <h2 class="h5 fw-bold mb-0" style="color: var(--sh-text);">
+            1. SQL JOIN Operation (<code style="font-family: var(--sh-font-mono); font-size: 0.85rem; color: var(--sh-brand);">select_related</code>)
+          </h2>
+        </div>
+        <p class="text-muted small mb-0 ms-4 ps-2">
+          Multi-table <code class="text-body-secondary">INNER JOIN</code> linking <strong class="text-body">reviews</strong>, <strong class="text-body">users</strong>, and <strong class="text-body">study_spots</strong> in a single round-trip query.
+        </p>
+      </div>
+      <div>
+        <span class="badge rounded-pill bg-body-secondary text-secondary px-3 py-2 fw-semibold" style="font-size: 0.8rem;">
+          <i class="bi bi-table me-1"></i> {{ reviews_joined|length }} Joined Reviews
+        </span>
+      </div>
+    </div>
+
+    <!-- Joined Table Results -->
+    <div class="table-responsive rounded-3 border shadow-sm mb-3" style="border-color: var(--sh-border) !important; background-color: var(--sh-surface);">
+      <table class="table table-hover align-middle mb-0" style="font-size: 0.875rem;">
+        <thead style="background-color: var(--sh-surface-subtle); border-bottom: 2px solid var(--sh-border);">
+          <tr class="text-uppercase text-muted" style="font-size: 0.72rem; letter-spacing: 0.05em;">
+            <th scope="col" class="ps-3" style="width: 70px;">ID</th>
+            <th scope="col">Reviewer (users)</th>
+            <th scope="col">Study Spot (study_spots)</th>
+            <th scope="col">Category</th>
+            <th scope="col" class="text-center">Rating</th>
+            <th scope="col">Download Speed</th>
+            <th scope="col">Noise Level</th>
+            <th scope="col" class="pe-3" style="min-width: 240px;">Review Text</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for review in reviews_joined %}
+          <tr>
+            <td class="ps-3">
+              <span class="badge bg-body-secondary text-body fw-bold" style="font-family: var(--sh-font-mono); font-size: 0.75rem;">
+                #{{ review.id }}
+              </span>
+            </td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="rounded-circle text-white d-flex align-items-center justify-content-center" style="width: 26px; height: 26px; font-size: 0.72rem; font-weight: 700; background-color: var(--sh-brand);">
+                  {{ review.user.username|slice:":1"|upper }}
+                </div>
+                <div>
+                  <span class="fw-semibold text-body">{{ review.user.username }}</span>
+                  {% if review.user.full_name %}
+                  <div class="text-muted" style="font-size: 0.72rem;">{{ review.user.full_name }}</div>
+                  {% endif %}
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="fw-semibold text-body">{{ review.spot.name }}</span>
+            </td>
+            <td>
+              <span class="badge rounded-pill bg-body-secondary text-secondary px-2 py-1" style="font-size: 0.72rem;">
+                {{ review.spot.get_category_display|default:review.spot.category }}
+              </span>
+            </td>
+            <td class="text-center">
+              <span class="badge rounded-pill px-2 py-1 fw-bold" style="background-color: #FEF3C7; color: #92400E; font-size: 0.75rem;">
+                <i class="bi bi-star-fill text-warning me-1"></i>{{ review.overall_rating }}/5
+              </span>
+            </td>
+            <td>
+              {% if review.download_speed_mbps %}
+              <span class="fw-semibold text-success" style="font-family: var(--sh-font-mono); font-size: 0.82rem;">
+                <i class="bi bi-arrow-down-circle me-1"></i>{{ review.download_speed_mbps }} Mbps
+              </span>
+              {% else %}
+              <span class="text-muted small">—</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge rounded-pill bg-body-secondary text-body-secondary px-2 py-1" style="font-size: 0.72rem;">
+                {{ review.noise_level|default:"Quiet" }}
+              </span>
+            </td>
+            <td class="pe-3 text-secondary" style="font-size: 0.82rem; line-height: 1.45;">
+              {% if review.review_text %}
+              "{{ review.review_text|truncatechars:120 }}"
+              {% else %}
+              <span class="text-muted fst-italic">No comment left</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="text-center py-4 text-muted">
+              No reviews recorded in Supabase yet.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Generated SQL (INNER JOIN) Code Block -->
+    <div class="rounded-3 overflow-hidden shadow-sm border" style="background-color: #121110; border-color: rgba(255,255,255,0.08) !important;">
+      <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom" style="background-color: #1C1917; border-color: rgba(255,255,255,0.08) !important;">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-terminal-fill text-success" style="font-size: 0.85rem;"></i>
+          <span class="text-light fw-semibold small" style="font-family: var(--sh-font-mono);">
+            Generated Django ORM SQL (<span class="text-success">INNER JOIN</span>)
+          </span>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-light py-0 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.75rem;" onclick="copyToClipboard('joinSqlCode', this)">
+          <i class="bi bi-clipboard"></i>
+          <span>Copy SQL</span>
+        </button>
+      </div>
+      <pre id="joinSqlCode" class="p-3 m-0 overflow-x-auto" style="font-family: var(--sh-font-mono); font-size: 0.82rem; line-height: 1.6; white-space: pre-wrap; word-break: break-all; color: #6EE7B7; background-color: #121110;"><code>{{ join_sql }}</code></pre>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION 2: SQL SUBQUERY (Nested Subquery)                     -->
+  <!-- ============================================================== -->
+  <section class="mb-5" id="sql-subquery-section">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 28px; height: 28px; background-color: var(--sh-brand); font-size: 0.85rem;">
+            <i class="bi bi-diagram-3-fill"></i>
+          </div>
+          <h2 class="h5 fw-bold mb-0" style="color: var(--sh-text);">
+            2. SQL SUBQUERY Operation (<code style="font-family: var(--sh-font-mono); font-size: 0.85rem; color: var(--sh-brand);">Subquery</code>)
+          </h2>
+        </div>
+        <p class="text-muted small mb-0 ms-4 ps-2">
+          Filtering <strong class="text-body">study_spots</strong> whose Wi-Fi meets or exceeds the calculated average via nested <code class="text-body-secondary">WHERE id IN (SELECT ...)</code>.
+        </p>
+      </div>
+
+      <!-- Benchmark Callout Badge -->
+      <div>
+        <span class="badge rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center gap-2 shadow-sm" style="background-color: var(--sh-brand-surface); color: var(--sh-brand-text); border: 1px solid var(--sh-brand-border); font-size: 0.85rem;">
+          <i class="bi bi-speedometer2"></i>
+          <span>Overall Average Wi-Fi Benchmark:</span>
+          <strong style="font-family: var(--sh-font-mono);">{{ avg_wifi }} Mbps</strong>
+        </span>
+      </div>
+    </div>
+
+    <!-- High-Speed Spots Table Results -->
+    <div class="table-responsive rounded-3 border shadow-sm mb-3" style="border-color: var(--sh-border) !important; background-color: var(--sh-surface);">
+      <table class="table table-hover align-middle mb-0" style="font-size: 0.875rem;">
+        <thead style="background-color: var(--sh-surface-subtle); border-bottom: 2px solid var(--sh-border);">
+          <tr class="text-uppercase text-muted" style="font-size: 0.72rem; letter-spacing: 0.05em;">
+            <th scope="col" class="ps-3" style="width: 70px;">Spot ID</th>
+            <th scope="col">Study Spot Name</th>
+            <th scope="col">Category</th>
+            <th scope="col">Address</th>
+            <th scope="col" class="text-center">Price Tier</th>
+            <th scope="col" class="text-end pe-3">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for spot in high_speed_spots %}
+          <tr>
+            <td class="ps-3">
+              <span class="badge bg-body-secondary text-body fw-bold" style="font-family: var(--sh-font-mono); font-size: 0.75rem;">
+                #{{ spot.id }}
+              </span>
+            </td>
+            <td>
+              <span class="fw-semibold text-body">{{ spot.name }}</span>
+            </td>
+            <td>
+              <span class="badge rounded-pill bg-body-secondary text-secondary px-2 py-1" style="font-size: 0.72rem;">
+                {{ spot.get_category_display|default:spot.category }}
+              </span>
+            </td>
+            <td class="text-secondary small">
+              <i class="bi bi-geo-alt text-muted me-1"></i>{{ spot.address }}
+            </td>
+            <td class="text-center">
+              <span class="badge rounded-pill bg-body-secondary text-body fw-semibold px-2 py-1" style="font-size: 0.75rem;">
+                {{ spot.price_tier_display }}
+              </span>
+            </td>
+            <td class="text-end pe-3">
+              <a href="{% url 'home:spot_detail' spot_id=spot.id %}" class="btn btn-sm btn-editorial-secondary py-1 px-2" style="font-size: 0.75rem;">
+                View Spot <i class="bi bi-chevron-right ms-1"></i>
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center py-4 text-muted">
+              No study spots matched or exceeded the Wi-Fi benchmark.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Generated SQL (SUBQUERY) Code Block -->
+    <div class="rounded-3 overflow-hidden shadow-sm border" style="background-color: #121110; border-color: rgba(255,255,255,0.08) !important;">
+      <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom" style="background-color: #1C1917; border-color: rgba(255,255,255,0.08) !important;">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-terminal-fill text-success" style="font-size: 0.85rem;"></i>
+          <span class="text-light fw-semibold small" style="font-family: var(--sh-font-mono);">
+            Generated Django ORM SQL (Nested <span class="text-success">SUBQUERY</span>)
+          </span>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-light py-0 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.75rem;" onclick="copyToClipboard('subquerySqlCode', this)">
+          <i class="bi bi-clipboard"></i>
+          <span>Copy SQL</span>
+        </button>
+      </div>
+      <pre id="subquerySqlCode" class="p-3 m-0 overflow-x-auto" style="font-family: var(--sh-font-mono); font-size: 0.82rem; line-height: 1.6; white-space: pre-wrap; word-break: break-all; color: #6EE7B7; background-color: #121110;"><code>{{ subquery_sql }}</code></pre>
+    </div>
+  </section>
+
+</div>
+
+<!-- Copy to Clipboard Interactive Script -->
+<script>
+function copyToClipboard(elementId, btnElement) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  const text = el.innerText.trim();
+  navigator.clipboard.writeText(text).then(function() {
+    const originalHtml = btnElement.innerHTML;
+    btnElement.innerHTML = '<i class="bi bi-check2 text-success me-1"></i> Copied!';
+    btnElement.classList.remove('btn-outline-light');
+    btnElement.classList.add('btn-light');
+    setTimeout(function() {
+      btnElement.innerHTML = originalHtml;
+      btnElement.classList.remove('btn-light');
+      btnElement.classList.add('btn-outline-light');
+    }, 2000);
+  }).catch(function(err) {
+    console.error('Failed to copy SQL:', err);
+  });
+}
+</script>
+{% endblock %}

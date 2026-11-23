@@ -2,7 +2,7 @@ from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import JsonResponse
-from django.db.models import Q, Avg, Count
+from django.db.models import Q, Avg, Count, Subquery
 from django.utils import timezone
 from apps.home.models import User, StudySpot, SpotAmenity, Review, CheckIn, SavedSpot
 from apps.login.auth_helper import login_required, get_logged_in_user
@@ -342,3 +342,36 @@ def delete_review_view(request, review_id):
 
     messages.info(request, f"Your review for {spot_name} has been deleted.")
     return redirect('home:spot_detail', spot_id=spot_id)
+
+
+def sql_insights(request):
+    """
+    CSIT327 Lab Activity: SQL JOINS and SUBQUERIES using Django ORM and Supabase PostgreSQL.
+    Demonstrates:
+    1. SQL JOIN: Review.objects.select_related('user', 'spot')
+    2. SQL SUBQUERY: StudySpot.objects.filter(id__in=Subquery(...))
+    """
+    # SQL JOIN (select_related)
+    reviews_joined = Review.objects.select_related('user', 'spot').all().order_by('-id')
+    join_sql = str(reviews_joined.query)
+
+    # SQL SUBQUERY (Subquery)
+    avg_wifi = SpotAmenity.objects.aggregate(overall_avg=Avg('avg_wifi_speed_mbps'))['overall_avg'] or 0
+    high_speed_spot_ids = SpotAmenity.objects.filter(
+        avg_wifi_speed_mbps__gte=avg_wifi
+    ).values('spot_id')
+
+    high_speed_spots = StudySpot.objects.filter(
+        id__in=Subquery(high_speed_spot_ids)
+    ).order_by('id')
+    subquery_sql = str(high_speed_spots.query)
+
+    context = {
+        'reviews_joined': reviews_joined,
+        'join_sql': join_sql,
+        'high_speed_spots': high_speed_spots,
+        'avg_wifi': round(float(avg_wifi), 2),
+        'subquery_sql': subquery_sql,
+    }
+    return render(request, 'home/insights.html', context)
+

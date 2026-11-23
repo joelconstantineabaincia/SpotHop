@@ -8,6 +8,7 @@ from .views import (
     toggle_checkin_view,
     add_review_view,
     delete_review_view,
+    sql_insights,
 )
 from apps.login.views import logout_view
 
@@ -22,5 +23,6 @@ urlpatterns = [
     path("save/<int:spot_id>/", toggle_save_spot_view, name="toggle_save"),
     path("saved/", saved_spots_view, name="saved_spots"),
     path("add-spot/", add_spot_view, name="add_spot"),
+    path("insights/", sql_insights, name="sql_insights"),
     path("logout/", logout_view, name="logout"),
 ]
