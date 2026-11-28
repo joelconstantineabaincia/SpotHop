@@ -1,8 +1,8 @@
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import JsonResponse
-from django.db.models import Q, Avg, Count, Subquery
+from django.db.models import Q, Avg, Count, Subquery, F
 from django.utils import timezone
 from apps.home.models import User, StudySpot, SpotAmenity, Review, CheckIn, SavedSpot
 from apps.login.auth_helper import login_required, get_logged_in_user
@@ -70,14 +70,24 @@ def home_view(request):
         try:
             min_wifi_val = Decimal(min_wifi)
             spots_qs = spots_qs.filter(amenities__avg_wifi_speed_mbps__gte=min_wifi_val)
-        except Exception:
+        except (InvalidOperation, ValueError, TypeError):
             pass
+
+    # Open Now filter (database-level schedule check supporting overnight hours)
+    if open_now == '1':
+        now = timezone.localtime().time()
+        spots_qs = spots_qs.filter(
+            Q(opening_time__isnull=True)
+            | Q(closing_time__isnull=True)
+            | (Q(opening_time__lte=F('closing_time')) & Q(opening_time__lte=now, closing_time__gte=now))
+            | (Q(opening_time__gt=F('closing_time')) & (Q(opening_time__lte=now) | Q(closing_time__gte=now)))
+        )
 
     # Annotate with rating and active check-ins count for sorting
     spots_qs = spots_qs.annotate(
         annotated_avg_rating=Avg('reviews__overall_rating'),
         annotated_review_count=Count('reviews', distinct=True),
-        annotated_active_checkins=Count('check_ins', filter=Q(check_ins__is_active=True), distinct=True)
+        annotated_active_checkins=Count('check_ins__user_id', filter=Q(check_ins__is_active=True), distinct=True)
     )
 
     # Sorting
@@ -91,11 +101,6 @@ def home_view(request):
         spots_qs = spots_qs.order_by('name')
     else:
         spots_qs = spots_qs.order_by('-id')
-
-    # Convert to list to apply Open Now if selected and collect meta
-    spots_list = list(spots_qs)
-    if open_now == '1':
-        spots_list = [s for s in spots_list if s.is_open_now]
 
     # User saved spots
     saved_spot_ids = set()
@@ -115,7 +120,7 @@ def home_view(request):
     amenity_summary = get_spot_amenity_summary_from_view(5)
 
     context = {
-        'spots': spots_list,
+        'spots': spots_qs,
         'saved_spot_ids': saved_spot_ids,
         'q': q,
         'category': category,
@@ -143,14 +148,13 @@ def spot_detail_view(request, spot_id):
     # Reviews ordered by newest first
     reviews = Review.objects.filter(spot=spot).select_related('user').order_by('-id')
 
-    # Active check-ins at this spot (deduplicated by student user to show latest per person)
-    raw_checkins = CheckIn.objects.filter(spot=spot, is_active=True).select_related('user').order_by('-checked_in_at')
-    seen_user_ids = set()
-    active_checkins = []
-    for ci in raw_checkins:
-        if ci.user_id not in seen_user_ids:
-            seen_user_ids.add(ci.user_id)
-            active_checkins.append(ci)
+    # Active check-ins at this spot (deduplicated per student user at DB level)
+    active_checkins = (
+        spot.check_ins.filter(is_active=True)
+        .select_related('user')
+        .order_by('user_id', '-checked_in_at')
+        .distinct('user_id')
+    )
 
     # Check if current user is saved or checked in
     is_saved = False
@@ -243,30 +247,37 @@ def add_spot_view(request):
             return redirect('home:home')
 
         try:
-            spot = StudySpot.objects.create(
-                name=name,
-                category=category,
-                address=address,
-                latitude=Decimal(latitude),
-                longitude=Decimal(longitude),
-                opening_time=opening_time,
-                closing_time=closing_time,
-                price_tier=price_tier,
+            lat_val = Decimal(latitude)
+            lng_val = Decimal(longitude)
+            wifi_val = Decimal(wifi_speed) if wifi_speed else Decimal("0.0")
+        except (InvalidOperation, ValueError, TypeError):
+            messages.error(
+                request,
+                "Invalid coordinates or numeric input: please enter valid decimal latitude, longitude, and Wi-Fi speed values.",
             )
-
-            SpotAmenity.objects.create(
-                spot=spot,
-                avg_wifi_speed_mbps=Decimal(wifi_speed) if wifi_speed else Decimal("0.0"),
-                outlet_density=outlet_density,
-                predominant_noise=predominant_noise,
-                last_recalculated_at=timezone.now(),
-            )
-
-            messages.success(request, f"Study spot '{spot.name}' added successfully!")
-            return redirect('home:spot_detail', spot_id=spot.id)
-        except Exception as e:
-            messages.error(request, f"Error adding spot: {str(e)}")
             return redirect('home:home')
+
+        spot = StudySpot.objects.create(
+            name=name,
+            category=category,
+            address=address,
+            latitude=lat_val,
+            longitude=lng_val,
+            opening_time=opening_time,
+            closing_time=closing_time,
+            price_tier=price_tier,
+        )
+
+        SpotAmenity.objects.create(
+            spot=spot,
+            avg_wifi_speed_mbps=wifi_val,
+            outlet_density=outlet_density,
+            predominant_noise=predominant_noise,
+            last_recalculated_at=timezone.now(),
+        )
+
+        messages.success(request, f"Study spot '{spot.name}' added successfully!")
+        return redirect('home:spot_detail', spot_id=spot.id)
 
     return redirect('home:home')
 
@@ -356,15 +367,21 @@ def sql_insights(request):
     join_sql = str(reviews_joined.query)
 
     # SQL SUBQUERY (Subquery)
-    avg_wifi = SpotAmenity.objects.aggregate(overall_avg=Avg('avg_wifi_speed_mbps'))['overall_avg'] or 0
-    high_speed_spot_ids = SpotAmenity.objects.filter(
-        avg_wifi_speed_mbps__gte=avg_wifi
-    ).values('spot_id')
+    overall_avg = SpotAmenity.objects.aggregate(overall_avg=Avg('avg_wifi_speed_mbps'))['overall_avg']
+    if overall_avg is None:
+        avg_wifi = 0
+        high_speed_spots = StudySpot.objects.none()
+        subquery_sql = ""
+    else:
+        avg_wifi = overall_avg
+        high_speed_spot_ids = SpotAmenity.objects.filter(
+            avg_wifi_speed_mbps__gte=avg_wifi
+        ).values('spot_id')
 
-    high_speed_spots = StudySpot.objects.filter(
-        id__in=Subquery(high_speed_spot_ids)
-    ).order_by('id')
-    subquery_sql = str(high_speed_spots.query)
+        high_speed_spots = StudySpot.objects.filter(
+            id__in=Subquery(high_speed_spot_ids)
+        ).order_by('id')
+        subquery_sql = str(high_speed_spots.query)
 
     context = {
         'reviews_joined': reviews_joined,

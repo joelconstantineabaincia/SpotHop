@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token }}">
   <title>{% block title %}SpotHop — Cebu University Study Directory & Cafés{% endblock %}</title>
   
   <!-- Google Fonts: Plus Jakarta Sans (UI) & JetBrains Mono (Telemetry) -->
@@ -300,6 +301,25 @@
     // Initialize icon based on initial theme
     updateThemeIcon(htmlEl.getAttribute('data-bs-theme'));
 
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    function getCsrfToken() {
+      return getCookie('csrftoken') || document.querySelector('meta[name="csrf-token"]')?.content || '';
+    }
+
     if (quickThemeToggle) {
       quickThemeToggle.addEventListener('click', function() {
         const currentTheme = htmlEl.getAttribute('data-bs-theme');
@@ -311,7 +331,7 @@
         fetch('/settings/toggle-dark-mode/', {
           method: 'POST',
           headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
+            'X-CSRFToken': getCsrfToken(),
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ dark_mode: nextTheme === 'dark' })
